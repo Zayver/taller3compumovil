@@ -12,7 +12,7 @@ import com.ntn.taller3.composables.mainscreen.MainScreen
 fun RootNavGraph(navController: NavHostController, start: String){
     NavHost(navController = navController, startDestination = start){
         composable(Screens.Login.route){
-            LoginScreen()
+            LoginScreen(navController)
         }
         composable(Screens.SignUp.route){
             SignUpScreen()

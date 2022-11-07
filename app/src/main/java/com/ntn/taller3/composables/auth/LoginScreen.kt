@@ -17,13 +17,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.ntn.taller3.composables.common.CustomClickableText
 import com.ntn.taller3.composables.common.DialogBoxLoading
 import com.ntn.taller3.composables.common.TitledPasswordTextField
 import com.ntn.taller3.composables.common.TitledTextField
 import kotlinx.coroutines.*
 
 @Composable
-fun LoginScreen(_viewmodel: LoginViewModel = viewModel()) {
+fun LoginScreen(navController: NavController,_viewmodel: LoginViewModel = viewModel()) {
     val email by _viewmodel.email.collectAsState()
     val password by _viewmodel.password.collectAsState()
     val isLoading by _viewmodel.isLoading.collectAsState()
@@ -51,7 +54,15 @@ fun LoginScreen(_viewmodel: LoginViewModel = viewModel()) {
                     value = password,
                     onTextChange = { _viewmodel.setPassword(it) })
             }
+            Spacer(modifier = Modifier.padding(10.dp))
+            CustomClickableText(text = "Registrarse") {
+                navController.navigate("signup") {
+                    launchSingleTop = true
+                }
+
+            }
             Spacer(modifier = Modifier.weight(1f))
+
             Foot(scaffoldState)
         }
     }
@@ -96,5 +107,5 @@ private fun Foot(scaffoldState: ScaffoldState, _viewModel: LoginViewModel = view
 @Preview(showSystemUi = true)
 @Composable
 private fun Preview() {
-    LoginScreen()
+    LoginScreen(rememberNavController())
 }

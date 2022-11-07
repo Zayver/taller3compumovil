@@ -3,6 +3,7 @@ package com.ntn.taller3.composables.common
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -17,6 +18,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -93,6 +96,14 @@ fun CustomSnackBar(snackBarHostState: SnackbarHostState) {
             }
         },
     )
+}
+
+
+@Composable
+fun CustomClickableText(text: String, onClick: () -> Unit) {
+    ClickableText(
+        text = AnnotatedString(text, spanStyle = SpanStyle(Color.Blue)),
+        onClick = { onClick() })
 }
 
 @Preview
