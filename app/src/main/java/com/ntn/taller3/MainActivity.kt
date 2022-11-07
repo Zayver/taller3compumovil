@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val currentUser = ParseUser.getCurrentUser()
         val destination = if(currentUser == null){
-            Screens.SignUp.route
+            Screens.Login.route
         }else{
             Screens.MainScreen.route
         }
