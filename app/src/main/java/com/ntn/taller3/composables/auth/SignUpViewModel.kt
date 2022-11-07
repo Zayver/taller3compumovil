@@ -1,16 +1,18 @@
 package com.ntn.taller3.composables.auth
 
-import android.content.Context
+import android.R
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Base64
 import android.util.Log
-import android.widget.Toast
+import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.parse.ParseException
 import com.parse.ParseUser
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.io.File
 
 
 class SignUpViewModel : ViewModel() {
@@ -72,11 +74,18 @@ class SignUpViewModel : ViewModel() {
         _password.value = password
     }
 
-    private val _image = MutableStateFlow("")
+    private val _image = MutableStateFlow<Uri?>(null)
     val image = _image.asStateFlow()
 
-    fun setImage(image: String){
+    fun setImage(image: Uri){
         _image.value = image
+    }
+
+    private val _bitmap = MutableStateFlow<Bitmap?>(null)
+    val bitmap = _bitmap.asStateFlow()
+
+    fun setBitmap(bitmap: Bitmap){
+        _bitmap.value = bitmap
     }
 
     fun signup(){
@@ -91,11 +100,16 @@ class SignUpViewModel : ViewModel() {
         user.put("type_id", _selectedTypeText.value)
         user.put("id_number", _id.value)
 
+        var img:String? = encodeImage(_bitmap.value)
+
+        if(!img.isNullOrEmpty())
+            user.put("image",img)
+
 
         user.signUpInBackground { e ->
             if (e == null) {
                 // Hooray! Let them use the app now.
-                Log.i("hola","ok")
+                Log.i("hola","ok"+img)
             } else {
                 // Sign up didn't succeed. Look at the ParseException
                 // to figure out what went wrong
@@ -105,6 +119,18 @@ class SignUpViewModel : ViewModel() {
 
 
     }
+
+    fun encodeImage(bm: Bitmap?): String? {
+        val baos = ByteArrayOutputStream()
+        if (bm != null) {
+            bm.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        }
+        val b = baos.toByteArray()
+        return Base64.encodeToString(b, Base64.DEFAULT)
+    }
+
+
+
 
 
 
