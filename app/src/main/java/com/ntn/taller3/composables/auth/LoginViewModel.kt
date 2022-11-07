@@ -4,13 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.parse.ParseException
 import com.parse.ParseUser
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
-class LoginViewModel: ViewModel() {
+class LoginViewModel : ViewModel() {
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
     private val _email = MutableStateFlow("")
     val email = _email.asStateFlow()
 
@@ -21,19 +23,23 @@ class LoginViewModel: ViewModel() {
     private val _password = MutableStateFlow("")
     val password = _password.asStateFlow()
 
-    fun setPassword(password: String){
+    fun setPassword(password: String) {
         _password.value = password
     }
 
-    fun login() =
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                ParseUser.logIn(_email.value, _password.value)
-                println("success")
-            }catch (e: ParseException){
-                println("Errorrrrrr +")
+    fun login() {
+        try{
+            viewModelScope.launch(Dispatchers.IO) {
+                _isLoading.value = true
+                withTimeout(5000) {
+                    ParseUser.logIn(_email.value, _password.value)
+                }
+
             }
+        }catch (e: Exception){
+            throw e
         }
+    }
 
 
 }

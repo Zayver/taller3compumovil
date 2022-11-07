@@ -1,7 +1,7 @@
 package com.ntn.taller3.composables.common
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -16,10 +16,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun TitledTextField(title: String, hint: String, value: String, onTextChange: (String) -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
         OutlinedTextField(
             value = value,
@@ -32,9 +34,14 @@ fun TitledTextField(title: String, hint: String, value: String, onTextChange: (S
 }
 
 @Composable
-fun TitledPasswordTextField(title: String, value: String, onTextChange: (String) -> Unit, hint: String) {
+fun TitledPasswordTextField(
+    title: String,
+    value: String,
+    onTextChange: (String) -> Unit,
+    hint: String
+) {
     var passwordVisible by remember { mutableStateOf(false) }
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
         OutlinedTextField(
             value = value,
@@ -57,6 +64,35 @@ fun TitledPasswordTextField(title: String, value: String, onTextChange: (String)
             }
         )
     }
+}
+
+
+@Composable
+fun CustomSnackBar(snackBarHostState: SnackbarHostState) {
+    SnackbarHost(
+        hostState = snackBarHostState,
+        snackbar = {
+            Snackbar(
+                backgroundColor = Color.Black,
+                action = {
+                    Text(
+                        text = snackBarHostState.currentSnackbarData?.actionLabel ?: "",
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .clickable {
+                                snackBarHostState.currentSnackbarData?.dismiss()
+                            },
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colors.primary
+                        )
+                    )
+                }
+            ) {
+                Text(text = snackBarHostState.currentSnackbarData?.message ?: "")
+            }
+        },
+    )
 }
 
 @Preview

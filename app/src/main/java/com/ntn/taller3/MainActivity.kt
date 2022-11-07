@@ -3,6 +3,7 @@ package com.ntn.taller3
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material.Surface
 import androidx.navigation.compose.rememberNavController
 import com.ntn.taller3.composables.auth.LoginScreen
 import com.ntn.taller3.composables.navigation.RootNavGraph
@@ -22,7 +23,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             Taller3Theme {
                 val navController = rememberNavController()
-                RootNavGraph(navController = navController, start = destination)
+                Surface() {
+                    RootNavGraph(navController = navController, start = destination)
+                }
             }
         }
     }
