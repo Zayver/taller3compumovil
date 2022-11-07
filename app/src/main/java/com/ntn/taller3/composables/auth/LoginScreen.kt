@@ -1,5 +1,6 @@
 package com.ntn.taller3.composables.auth
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -16,10 +17,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ntn.taller3.composables.common.*
-import com.parse.ParseException
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.launch
+import com.ntn.taller3.composables.common.DialogBoxLoading
+import com.ntn.taller3.composables.common.TitledPasswordTextField
+import com.ntn.taller3.composables.common.TitledTextField
+import kotlinx.coroutines.*
 
 @Composable
 fun LoginScreen(_viewmodel: LoginViewModel = viewModel()) {
@@ -65,25 +66,24 @@ private fun Title() {
 @Composable
 private fun Foot(scaffoldState: ScaffoldState, _viewModel: LoginViewModel = viewModel()) {
     val coroutineScope = rememberCoroutineScope()
-    val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, e ->
-        coroutineScope.launch {
-            scaffoldState.snackbarHostState.showSnackbar(
-                message = "Error on login: $e",
-                actionLabel = "Dismiss",
-                duration = SnackbarDuration.Short,
-            )
-        }
-    }
+
 
     OutlinedButton(
         onClick = {
-            try{
-                coroutineScope.launch(coroutineExceptionHandler) {
+            coroutineScope.launch{
+                try{
                     _viewModel.login()
+                }catch (e: Exception){
+                    coroutineScope.launch {
+                        scaffoldState.snackbarHostState.showSnackbar(
+                            message = "Error on login : ${e.message}",
+                            actionLabel = "Dismiss",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
                 }
-            }catch (e: Exception){
-                println("Sirvio")
             }
+
         }
 
     ) {

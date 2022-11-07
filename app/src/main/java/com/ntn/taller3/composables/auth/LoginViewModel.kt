@@ -1,5 +1,8 @@
 package com.ntn.taller3.composables.auth
 
+import android.util.Log
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.parse.ParseException
@@ -27,19 +30,27 @@ class LoginViewModel : ViewModel() {
         _password.value = password
     }
 
-    fun login() {
-        try{
-            viewModelScope.launch(Dispatchers.IO) {
-                _isLoading.value = true
-                withTimeout(5000) {
+    suspend fun login()  {
+        val result = viewModelScope.async (Dispatchers.IO ) {
+            _isLoading.value = true
+            withTimeout(5000){
+                try {
                     ParseUser.logIn(_email.value, _password.value)
+                } catch (e: Exception) {
+                    Log.d("Mio", "Ctached on viewmodel")
+                    throw e
+                } finally {
+                    _isLoading.value = false
                 }
-
             }
-        }catch (e: Exception){
-            throw e
         }
+        result.await()
+        println("Final de login")
     }
+
+
+
+
 
 
 }
