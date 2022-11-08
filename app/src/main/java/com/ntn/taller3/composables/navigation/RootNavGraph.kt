@@ -15,10 +15,10 @@ fun RootNavGraph(navController: NavHostController, start: String){
             LoginScreen(navController)
         }
         composable(Screens.SignUp.route){
-            SignUpScreen()
+            SignUpScreen(navController)
         }
         composable(Screens.MainScreen.route){
-            MainScreen()
+            MainScreen(navController)
         }
     }
 }

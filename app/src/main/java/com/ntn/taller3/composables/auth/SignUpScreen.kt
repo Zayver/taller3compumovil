@@ -24,14 +24,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.ntn.taller3.composables.common.DialogBoxLoading
 import com.ntn.taller3.composables.common.TitledTextField
+import com.ntn.taller3.composables.navigation.Screens
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun SignUpScreen(_viewModel: SignUpViewModel = viewModel()) {
+fun SignUpScreen(navController: NavController,_viewModel: SignUpViewModel = viewModel()) {
     val firstname by _viewModel.firstname.collectAsState()
     val lastname by _viewModel.lastname.collectAsState()
     val email by _viewModel.email.collectAsState()
@@ -205,6 +208,8 @@ fun SignUpScreen(_viewModel: SignUpViewModel = viewModel()) {
                         coroutineScope.launch {
                             try {
                                 _viewModel.signup()
+                                navController.popBackStack()
+                                navController.navigate(Screens.MainScreen.route)
                             } catch (e: Exception) {
                                 coroutineScope.launch {
                                     scaffoldState.snackbarHostState.showSnackbar(
@@ -233,6 +238,6 @@ private fun Title() {
 @Composable
 @Preview(showSystemUi = true)
 private fun Preview() {
-    SignUpScreen()
+    SignUpScreen(rememberNavController())
 }
 

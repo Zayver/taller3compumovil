@@ -1,6 +1,9 @@
 package com.ntn.taller3.composables.auth
 
+import android.content.Context
+import android.content.IntentSender
 import android.util.Log
+import androidx.activity.result.IntentSenderRequest
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,14 +22,18 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
+import com.google.android.gms.tasks.Task
 import com.ntn.taller3.composables.common.CustomClickableText
 import com.ntn.taller3.composables.common.DialogBoxLoading
 import com.ntn.taller3.composables.common.TitledPasswordTextField
 import com.ntn.taller3.composables.common.TitledTextField
+import com.ntn.taller3.composables.navigation.Screens
 import kotlinx.coroutines.*
 
 @Composable
-fun LoginScreen(navController: NavController,_viewmodel: LoginViewModel = viewModel()) {
+fun LoginScreen(navController: NavController, _viewmodel: LoginViewModel = viewModel()) {
     val email by _viewmodel.email.collectAsState()
     val password by _viewmodel.password.collectAsState()
     val isLoading by _viewmodel.isLoading.collectAsState()
@@ -50,20 +57,21 @@ fun LoginScreen(navController: NavController,_viewmodel: LoginViewModel = viewMo
                     onTextChange = { _viewmodel.setEmail(it) })
                 TitledPasswordTextField(
                     title = "Password",
-                    hint = "Email",
+                    hint = "Password",
                     value = password,
                     onTextChange = { _viewmodel.setPassword(it) })
             }
             Spacer(modifier = Modifier.padding(10.dp))
             CustomClickableText(text = "Registrarse") {
-                navController.navigate("signup") {
+
+                navController.navigate(Screens.SignUp.route) {
                     launchSingleTop = true
                 }
 
             }
             Spacer(modifier = Modifier.weight(1f))
 
-            Foot(scaffoldState)
+            Foot(scaffoldState, navController)
         }
     }
 }
@@ -75,16 +83,22 @@ private fun Title() {
 }
 
 @Composable
-private fun Foot(scaffoldState: ScaffoldState, _viewModel: LoginViewModel = viewModel()) {
+private fun Foot(
+    scaffoldState: ScaffoldState,
+    navController: NavController,
+    _viewModel: LoginViewModel = viewModel()
+) {
     val coroutineScope = rememberCoroutineScope()
 
 
     OutlinedButton(
         onClick = {
-            coroutineScope.launch{
-                try{
+            coroutineScope.launch {
+                try {
                     _viewModel.login()
-                }catch (e: Exception){
+                    navController.popBackStack()
+                    navController.navigate(Screens.MainScreen.route)
+                } catch (e: Exception) {
                     coroutineScope.launch {
                         scaffoldState.snackbarHostState.showSnackbar(
                             message = "Error on login : ${e.message}",
