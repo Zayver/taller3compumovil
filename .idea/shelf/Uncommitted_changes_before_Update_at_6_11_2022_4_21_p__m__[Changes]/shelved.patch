@@ -1,0 +1,191 @@
+Index: app/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>plugins {\r\n    id 'com.android.application'\r\n    id 'org.jetbrains.kotlin.android'\r\n}\r\n\r\nandroid {\r\n    namespace 'com.ntn.taller3'\r\n    compileSdk 33\r\n\r\n    defaultConfig {\r\n        applicationId \"com.ntn.taller3\"\r\n        minSdk 23\r\n        targetSdk 33\r\n        versionCode 1\r\n        versionName \"1.0\"\r\n\r\n        testInstrumentationRunner \"androidx.test.runner.AndroidJUnitRunner\"\r\n        vectorDrawables {\r\n            useSupportLibrary true\r\n        }\r\n    }\r\n\r\n    buildTypes {\r\n        release {\r\n            minifyEnabled false\r\n            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'\r\n        }\r\n    }\r\n    compileOptions {\r\n        sourceCompatibility JavaVersion.VERSION_1_8\r\n        targetCompatibility JavaVersion.VERSION_1_8\r\n    }\r\n    kotlinOptions {\r\n        jvmTarget = '1.8'\r\n    }\r\n    buildFeatures {\r\n        compose true\r\n    }\r\n    composeOptions {\r\n        kotlinCompilerExtensionVersion '1.1.1'\r\n    }\r\n    packagingOptions {\r\n        resources {\r\n            excludes += '/META-INF/{AL2.0,LGPL2.1}'\r\n        }\r\n    }\r\n}\r\n\r\ndependencies {\r\n\r\n    implementation 'androidx.core:core-ktx:1.9.0'\r\n    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'\r\n    implementation 'androidx.activity:activity-compose:1.6.1'\r\n    implementation \"androidx.compose.ui:ui:$compose_ui_version\"\r\n    implementation \"androidx.compose.ui:ui-tooling-preview:$compose_ui_version\"\r\n    implementation \"androidx.compose.material:material:$compose_ui_version\"\r\n    testImplementation 'junit:junit:4.13.2'\r\n    androidTestImplementation 'androidx.test.ext:junit:1.1.3'\r\n    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'\r\n    androidTestImplementation \"androidx.compose.ui:ui-test-junit4:$compose_ui_version\"\r\n    debugImplementation \"androidx.compose.ui:ui-tooling:$compose_ui_version\"\r\n    debugImplementation \"androidx.compose.ui:ui-test-manifest:$compose_ui_version\"\r\n\r\n\r\n    //Compose navigation\r\n    implementation \"androidx.navigation:navigation-compose:2.5.3\"\r\n    //MAPS and Localization\r\n    implementation 'com.google.maps.android:maps-compose:2.7.2'\r\n    implementation 'com.google.android.gms:play-services-maps:18.1.0'\r\n    implementation 'com.google.android.gms:play-services-location:21.0.0'\r\n\r\n    //Parse\r\n    implementation \"com.github.parse-community.Parse-SDK-Android:parse:4.1.0\"\r\n    implementation \"com.github.parse-community.Parse-SDK-Android:ktx:4.1.0\"\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build.gradle b/app/build.gradle
+--- a/app/build.gradle	(revision e945b89a6e90b3477d0051869d37fc66045ba87c)
++++ b/app/build.gradle	(date 1667685422432)
+@@ -61,6 +61,9 @@
+     debugImplementation "androidx.compose.ui:ui-tooling:$compose_ui_version"
+     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_ui_version"
+ 
++    //state flow
++    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1'
++
+ 
+     //Compose navigation
+     implementation "androidx.navigation:navigation-compose:2.5.3"
+Index: app/src/main/java/com/ntn/taller3/MainActivity.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ntn.taller3\r\n\r\nimport android.os.Bundle\r\nimport androidx.activity.ComponentActivity\r\nimport androidx.activity.compose.setContent\r\nimport androidx.navigation.compose.rememberNavController\r\nimport com.ntn.taller3.composables.auth.LoginScreen\r\nimport com.ntn.taller3.composables.navigation.RootNavGraph\r\nimport com.ntn.taller3.composables.navigation.Screens\r\nimport com.ntn.taller3.ui.theme.Taller3Theme\r\nimport com.parse.ParseUser\r\n\r\nclass MainActivity : ComponentActivity() {\r\n    override fun onCreate(savedInstanceState: Bundle?) {\r\n        super.onCreate(savedInstanceState)\r\n        val currentUser = ParseUser.getCurrentUser()\r\n        val destination = if(currentUser == null){\r\n            Screens.Login.route\r\n        }else{\r\n            Screens.MainScreen.route\r\n        }\r\n        setContent {\r\n            Taller3Theme {\r\n                val navController = rememberNavController()\r\n                RootNavGraph(navController = navController, start = destination)\r\n            }\r\n        }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ntn/taller3/MainActivity.kt b/app/src/main/java/com/ntn/taller3/MainActivity.kt
+--- a/app/src/main/java/com/ntn/taller3/MainActivity.kt	(revision e945b89a6e90b3477d0051869d37fc66045ba87c)
++++ b/app/src/main/java/com/ntn/taller3/MainActivity.kt	(date 1667681179991)
+@@ -15,7 +15,7 @@
+         super.onCreate(savedInstanceState)
+         val currentUser = ParseUser.getCurrentUser()
+         val destination = if(currentUser == null){
+-            Screens.Login.route
++            Screens.SignUp.route
+         }else{
+             Screens.MainScreen.route
+         }
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    xmlns:tools=\"http://schemas.android.com/tools\">\r\n\r\n    <uses-permission android:name=\"android.permission.INTERNET\"/>\r\n    <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>\r\n    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />\r\n    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />\r\n\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:name=\".app.App\"\r\n        android:dataExtractionRules=\"@xml/data_extraction_rules\"\r\n        android:fullBackupContent=\"@xml/backup_rules\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:roundIcon=\"@mipmap/ic_launcher_round\"\r\n        android:supportsRtl=\"true\"\r\n        android:theme=\"@style/Theme.Taller3\"\r\n        tools:targetApi=\"31\">\r\n\r\n\r\n        <meta-data\r\n            android:name=\"com.google.android.geo.API_KEY\"\r\n            android:value=\"${MAPS_API_KEY}\" />\r\n\r\n        <meta-data\r\n            android:name=\"com.google.android.gms.version\"\r\n            android:value=\"@integer/google_play_services_version\" />\r\n\r\n\r\n        <activity\r\n            android:name=\".MainActivity\"\r\n            android:exported=\"true\"\r\n            android:label=\"@string/app_name\"\r\n            android:theme=\"@style/Theme.Taller3\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n\r\n            <meta-data\r\n                android:name=\"android.app.lib_name\"\r\n                android:value=\"\" />\r\n        </activity>\r\n    </application>\r\n\r\n</manifest>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+--- a/app/src/main/AndroidManifest.xml	(revision e945b89a6e90b3477d0051869d37fc66045ba87c)
++++ b/app/src/main/AndroidManifest.xml	(date 1667680912970)
+@@ -23,7 +23,7 @@
+ 
+         <meta-data
+             android:name="com.google.android.geo.API_KEY"
+-            android:value="${MAPS_API_KEY}" />
++            android:value="AIzaSyABQy5SnJNtaZfuQCCdqjluP6PGWL73Rjc" />
+ 
+         <meta-data
+             android:name="com.google.android.gms.version"
+Index: gradle.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># Project-wide Gradle settings.\r\n# IDE (e.g. Android Studio) users:\r\n# Gradle settings configured through the IDE *will override*\r\n# any settings specified in this file.\r\n# For more details on how to configure your build environment visit\r\n# http://www.gradle.org/docs/current/userguide/build_environment.html\r\n# Specifies the JVM arguments used for the daemon process.\r\n# The setting is particularly useful for tweaking memory settings.\r\norg.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8\r\n# When configured, Gradle will run in incubating parallel mode.\r\n# This option should only be used with decoupled projects. More details, visit\r\n# http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects\r\n# org.gradle.parallel=true\r\n# AndroidX package structure to make it clearer which packages are bundled with the\r\n# Android operating system, and which are packaged with your app's APK\r\n# https://developer.android.com/topic/libraries/support-library/androidx-rn\r\nandroid.useAndroidX=true\r\n# Kotlin code style for this project: \"official\" or \"obsolete\":\r\nkotlin.code.style=official\r\n# Enables namespacing of each library's R class so that its R class includes only the\r\n# resources declared in the library itself and none from the library's dependencies,\r\n# thereby reducing the size of the R class for that library\r\nandroid.nonTransitiveRClass=true
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/gradle.properties b/gradle.properties
+--- a/gradle.properties	(revision e945b89a6e90b3477d0051869d37fc66045ba87c)
++++ b/gradle.properties	(date 1667679849680)
+@@ -15,6 +15,7 @@
+ # Android operating system, and which are packaged with your app's APK
+ # https://developer.android.com/topic/libraries/support-library/androidx-rn
+ android.useAndroidX=true
++android.enableJetifier=true
+ # Kotlin code style for this project: "official" or "obsolete":
+ kotlin.code.style=official
+ # Enables namespacing of each library's R class so that its R class includes only the
+Index: app/src/main/java/com/ntn/taller3/composables/auth/SignupScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ntn.taller3.composables.auth\r\n\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.Spacer\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.rememberScrollState\r\nimport androidx.compose.foundation.verticalScroll\r\nimport androidx.compose.material.OutlinedButton\r\nimport androidx.compose.material.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport com.ntn.taller3.composables.common.TitledTextField\r\n\r\n@Composable\r\nfun SignUpScreen() {\r\n    Column(modifier = Modifier.padding(25.dp), horizontalAlignment = Alignment.CenterHorizontally) {\r\n        Title()\r\n        Spacer(modifier = Modifier.padding(20.dp))\r\n        val scrollState = rememberScrollState()\r\n        Column(\r\n            modifier = Modifier.verticalScroll(scrollState),\r\n            verticalArrangement = Arrangement.spacedBy(25.dp)\r\n        ) {\r\n            TitledTextField(title = \"Nombre\", hint = \"Nombre\", value = \"\", onTextChange = {})\r\n            TitledTextField(title = \"Apellido\", hint = \"Apellido\", value = \"\", onTextChange = {})\r\n            TitledTextField(title = \"Email\", hint = \"Email\", value = \"\", onTextChange = {})\r\n            TitledTextField(\r\n                title = \"Contraseña\",\r\n                hint = \"Contraseña\",\r\n                value = \"\",\r\n                onTextChange = {}) //TODO CAMBIAR A CONTRASEÑA\r\n            // TODO IMAGEN RESTO CONTACTOS\r\n        }\r\n        Spacer(modifier = Modifier.weight(1f))\r\n        Foot()\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun Title() {\r\n    Text(text = \"Registro\", fontSize = 25.sp, fontWeight = FontWeight.ExtraBold)\r\n}\r\n\r\n@Composable\r\nprivate fun Foot() {\r\n    OutlinedButton(onClick = { /*TODO*/ }) {\r\n        Text(text = \"Registrarse\")\r\n    }\r\n}\r\n\r\n@Composable\r\n@Preview(showSystemUi = true)\r\nprivate fun Preview() {\r\n    SignUpScreen()\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ntn/taller3/composables/auth/SignupScreen.kt b/app/src/main/java/com/ntn/taller3/composables/auth/SignupScreen.kt
+--- a/app/src/main/java/com/ntn/taller3/composables/auth/SignupScreen.kt	(revision e945b89a6e90b3477d0051869d37fc66045ba87c)
++++ b/app/src/main/java/com/ntn/taller3/composables/auth/SignupScreen.kt	(date 1667689099092)
+@@ -15,10 +15,13 @@
+ import androidx.compose.ui.tooling.preview.Preview
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
++import androidx.lifecycle.viewmodel.compose.viewModel
+ import com.ntn.taller3.composables.common.TitledTextField
++import com.ntn.taller3.models.SignUpViewModel
+ 
+ @Composable
+-fun SignUpScreen() {
++fun SignUpScreen(_viewModel: SignUpViewModel = viewModel()) {
++
+     Column(modifier = Modifier.padding(25.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+         Title()
+         Spacer(modifier = Modifier.padding(20.dp))
+@@ -27,14 +30,22 @@
+             modifier = Modifier.verticalScroll(scrollState),
+             verticalArrangement = Arrangement.spacedBy(25.dp)
+         ) {
+-            TitledTextField(title = "Nombre", hint = "Nombre", value = "", onTextChange = {})
+-            TitledTextField(title = "Apellido", hint = "Apellido", value = "", onTextChange = {})
+-            TitledTextField(title = "Email", hint = "Email", value = "", onTextChange = {})
++            TitledTextField(title = "Nombre", hint = "Nombre", value = _viewModel.username) {
++                _viewModel.onUsernameChange(
++                    it
++                )
++            }
++            //TitledTextField(title = "Apellido", hint = "Apellido", value = "", onTextChange = {_viewModel.onEmailChange(it)})
++            TitledTextField(title = "Email", hint = "Email", value = _viewModel.email) {
++                _viewModel.onEmailChange(
++                    it
++                )
++            }
+             TitledTextField(
+                 title = "Contraseña",
+                 hint = "Contraseña",
+-                value = "",
+-                onTextChange = {}) //TODO CAMBIAR A CONTRASEÑA
++                value = _viewModel.password
++            ) { _viewModel.onPasswordChange(it) } //TODO CAMBIAR A CONTRASEÑA
+             // TODO IMAGEN RESTO CONTACTOS
+         }
+         Spacer(modifier = Modifier.weight(1f))
+Index: app/src/main/java/com/ntn/taller3/composables/auth/LoginScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ntn.taller3.composables.auth\r\n\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.Spacer\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.material.OutlinedButton\r\nimport androidx.compose.material.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport com.ntn.taller3.composables.common.TitledTextField\r\n\r\n@Composable\r\nfun LoginScreen() {\r\n    Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {\r\n        Title()\r\n        Spacer(modifier = Modifier.padding(40.dp))\r\n        Column(verticalArrangement = Arrangement.spacedBy(15.dp)) {\r\n            TitledTextField(title = \"Email\", hint = \"Email\", value = \"\", onTextChange = {})\r\n            TitledTextField(title = \"Password\", hint = \"Email\", value = \"\", onTextChange = {})\r\n        }\r\n        Spacer(modifier = Modifier.weight(1f))\r\n        Foot()\r\n    }\r\n}\r\n\r\n\r\n@Composable\r\nprivate fun Title() {\r\n    Text(text = \"Taller #3\", fontSize = 45.sp, fontWeight = FontWeight.ExtraBold)\r\n}\r\n@Composable\r\nprivate fun Foot(){\r\n    OutlinedButton(onClick = { /*TODO*/ }) {\r\n        Text(\"Iniciar Sesión\")\r\n    }\r\n}\r\n\r\n\r\n@Preview(showSystemUi = true)\r\n@Composable\r\nprivate fun Preview() {\r\n    LoginScreen()\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ntn/taller3/composables/auth/LoginScreen.kt b/app/src/main/java/com/ntn/taller3/composables/auth/LoginScreen.kt
+--- a/app/src/main/java/com/ntn/taller3/composables/auth/LoginScreen.kt	(revision e945b89a6e90b3477d0051869d37fc66045ba87c)
++++ b/app/src/main/java/com/ntn/taller3/composables/auth/LoginScreen.kt	(date 1667689037826)
+@@ -20,10 +20,13 @@
+     Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+         Title()
+         Spacer(modifier = Modifier.padding(40.dp))
++        /*
+         Column(verticalArrangement = Arrangement.spacedBy(15.dp)) {
+-            TitledTextField(title = "Email", hint = "Email", value = "", onTextChange = {})
+-            TitledTextField(title = "Password", hint = "Email", value = "", onTextChange = {})
++            TitledTextField(title = "Email", hint = "Email", value = "") {}
++            TitledTextField(title = "Password", hint = "Password", value = "") {}
+         }
++
++         */
+         Spacer(modifier = Modifier.weight(1f))
+         Foot()
+     }
+Index: app/src/main/java/com/ntn/taller3/composables/common/CommonComposables.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.ntn.taller3.composables.common\r\n\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material.OutlinedTextField\r\nimport androidx.compose.material.Text\r\nimport androidx.compose.material.TextField\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.sp\r\n\r\n@Composable\r\nfun TitledTextField(title: String, hint: String, value: String, onTextChange: (String) -> Unit) {\r\n    Column(modifier = Modifier.fillMaxWidth()) {\r\n        Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)\r\n        OutlinedTextField(\r\n            value = value,\r\n            onValueChange = onTextChange,\r\n            label = { Text(hint) },\r\n            shape = RoundedCornerShape(20),\r\n            modifier = Modifier.fillMaxWidth()\r\n        )\r\n    }\r\n}\r\n\r\n\r\n@Preview\r\n@Composable\r\nprivate fun Preview() {\r\n    TitledTextField(\"TitledTextField\", \"Hint\", \"\", {})\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/ntn/taller3/composables/common/CommonComposables.kt b/app/src/main/java/com/ntn/taller3/composables/common/CommonComposables.kt
+--- a/app/src/main/java/com/ntn/taller3/composables/common/CommonComposables.kt	(revision e945b89a6e90b3477d0051869d37fc66045ba87c)
++++ b/app/src/main/java/com/ntn/taller3/composables/common/CommonComposables.kt	(date 1667688932219)
+@@ -5,15 +5,15 @@
+ import androidx.compose.foundation.shape.RoundedCornerShape
+ import androidx.compose.material.OutlinedTextField
+ import androidx.compose.material.Text
+-import androidx.compose.material.TextField
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.tooling.preview.Preview
+ import androidx.compose.ui.unit.sp
++import kotlinx.coroutines.flow.StateFlow
+ 
+ @Composable
+-fun TitledTextField(title: String, hint: String, value: String, onTextChange: (String) -> Unit) {
++fun TitledTextField(title: String, hint: String, value: StateFlow<String>, onTextChange: (String) -> Unit) {
+     Column(modifier = Modifier.fillMaxWidth()) {
+         Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+         OutlinedTextField(
+@@ -30,5 +30,5 @@
+ @Preview
+ @Composable
+ private fun Preview() {
+-    TitledTextField("TitledTextField", "Hint", "", {})
++    TitledTextField("TitledTextField", "Hint", "") {}
+ }
+\ No newline at end of file
