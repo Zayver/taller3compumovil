@@ -10,6 +10,7 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
         Parse.initialize(
             Parse.Configuration.Builder(this).applicationId("findit")
                 .clientKey("finditkey")

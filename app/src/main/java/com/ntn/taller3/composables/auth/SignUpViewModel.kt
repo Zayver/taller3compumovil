@@ -1,18 +1,15 @@
 package com.ntn.taller3.composables.auth
 
-import android.R
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
-import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
+import com.parse.ParseObject
 import com.parse.ParseUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.ByteArrayOutputStream
-import java.io.File
 
 
 class SignUpViewModel : ViewModel() {
@@ -105,11 +102,34 @@ class SignUpViewModel : ViewModel() {
         if(!img.isNullOrEmpty())
             user.put("image",img)
 
+        /*
+         val userDetails = ParseObject("Users")
+        val img:String = Base64.encodeToString(b, Base64.DEFAULT)
+        userDetails.put("image", img)
+        userDetails.put("username", _username.value)
+        userDetails.put("latitude", 1.0)
+        userDetails.put("longitude",2.0)
+        userDetails.saveInBackground()
+        userDetails.saveInBackground { e ->
+            if (e == null) {
+                // Hooray! Let them use the app now.
+                // if (img != null) {
+                Log.i("hola", "ok")
+                // }
+            } else {
+                // Sign up didn't succeed. Look at the ParseException
+                // to figure out what went wrong
+                Log.i("hola", "no ok" + e.toString())
+            }
+        }
+        */
 
         user.signUpInBackground { e ->
             if (e == null) {
                 // Hooray! Let them use the app now.
-                Log.i("hola","ok"+img)
+               // if (img != null) {
+                    Log.i("hola","ok")
+               // }
             } else {
                 // Sign up didn't succeed. Look at the ParseException
                 // to figure out what went wrong

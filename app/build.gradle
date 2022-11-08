@@ -74,8 +74,9 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:21.0.0'
 
     //Parse
-    implementation "com.github.parse-community.Parse-SDK-Android:parse:4.1.0"
-    implementation "com.github.parse-community.Parse-SDK-Android:ktx:4.1.0"
+    implementation 'com.github.parse-community.Parse-SDK-Android:parse:4.1.0'
+    implementation 'com.github.parse-community.Parse-SDK-Android:ktx:4.1.0'
+    implementation 'com.github.parse-community:ParseLiveQuery-Android:1.2.2'
 
     //LifeCycle
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.6.0-alpha03'
@@ -86,4 +87,9 @@ dependencies {
 
     //Coil
     implementation "io.coil-kt:coil-compose:2.2.2"
+
+
+
+
+
 }
