@@ -159,18 +159,24 @@ fun RequestLocation(
     _locator: LocatorViewModel = viewModel(),
     _viewModel: MainScreenViewModel = viewModel()
 ) {
+    var checkPermissionStatus by remember {
+        mutableStateOf(false)
+    }
     val coroutineScope = rememberCoroutineScope()
     val settingResultRequest = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { activityResult ->
-        if (activityResult.resultCode == RESULT_OK)
+        if (activityResult.resultCode == RESULT_OK) {
+            checkPermissionStatus = true
             Log.d("appDebug", "Accepted")
+        }
         else {
             Log.d("appDebug", "Denied")
         }
     }
 
     val ctx = LocalContext.current
+
     val accessLocation = rememberPermissionState(
         Manifest.permission.ACCESS_FINE_LOCATION
     ) {
@@ -182,6 +188,7 @@ fun RequestLocation(
                     settingResultRequest.launch(intentSenderRequest)
                 },
                 onEnabled = {
+                    checkPermissionStatus = true
                 }
             )
 
@@ -198,26 +205,33 @@ fun RequestLocation(
         key1 = lifecycleOwner,
         effect = {
             val observer = LifecycleEventObserver { _, event ->
-
                 if (event == Lifecycle.Event.ON_START) {
                     accessLocation.launchPermissionRequest()
                 }
-
             }
             lifecycleOwner.lifecycle.addObserver(observer)
             onDispose {
                 lifecycleOwner.lifecycle.removeObserver(observer)
+                checkPermissionStatus = true
             }
         }
     )
-    when (PackageManager.PERMISSION_GRANTED) {
-        ContextCompat.checkSelfPermission(
-            ctx,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) -> {
-            val location by _locator.requestLocationUpdates().observeAsState()
-            location?.let {
-                _viewModel.onLocationUpdate(it)
+    Log.d("Mio", "checkPermissionStatusvalue: $checkPermissionStatus")
+    if(checkPermissionStatus){
+        Log.d("Mio", "Enter check state")
+        when (PackageManager.PERMISSION_GRANTED) {
+            ContextCompat.checkSelfPermission(
+                ctx,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) -> {
+                Log.d("Mio", "Permiso concedido iniciando localizacion")
+                val location by _locator.requestLocationUpdates().observeAsState()
+                location?.let {
+                    _viewModel.onLocationUpdate(it)
+                }
+            }
+            else -> {
+                Log.d("Mio", "Permiso Denegado nada que hacer")
             }
         }
     }

@@ -2,18 +2,20 @@ package com.ntn.taller3.composables.mainscreen
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.util.Base64
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.ntn.taller3.data.UserDetails
-import com.parse.ParseException
 import com.parse.ParseObject
 import com.parse.ParseQuery
 import com.parse.ParseUser
+import com.parse.ktx.whereNotEqualTo
 import com.parse.livequery.ParseLiveQueryClient
 import com.parse.livequery.SubscriptionHandling
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +53,7 @@ class MainScreenViewModel : ViewModel() {
     private val _isOnline = MutableStateFlow(false) // si el usuario está disponible o no
     val isOnline = _isOnline.asStateFlow()
 
-    var userObjId = ""
+    private var userObjId = ""
 
     init {
         getOnlineUsers()
@@ -63,20 +65,67 @@ class MainScreenViewModel : ViewModel() {
         val subscriptionHandling: SubscriptionHandling<ParseObject> =
             parseLiveQueryClient.subscribe(parseQuery)
 
-        subscriptionHandling.handleSubscribe {
-            Log.i("live", "suscribed")
+        subscriptionHandling.handleSubscribe { query ->
+            query.whereNotEqualTo("username", ParseUser.getCurrentUser().username)
+            query.findInBackground().onSuccess {
+                listResult ->
+                listResult.result.forEach {
+                    val username = it.getString("username")
+                    val latitude = it.getDouble("latitude")
+                    val longitude = it.getDouble("longitude")
+                    if(username != null)
+                        _users.value.add(UserDetails(username, null, latitude, longitude, ""))
+                }
+            }
+            Log.d("Mio", "Finished initial query")
         }
-        subscriptionHandling.handleEvent(SubscriptionHandling.Event.CREATE) { query, obj ->
-            run {
-                val user = obj.getString("username")
-                val latitude = obj.getDouble("latitude")
-                val longitude = obj.getDouble("longitude")
 
-                if(user != null)
-                    _users.value.add(UserDetails(user,null, latitude, longitude, ""))
+        subscriptionHandling.handleEvents { _, event, obj ->
+            run {
+                when (event) {
+                    SubscriptionHandling.Event.CREATE -> {
+                        obj.getString("username")?.let {
+                            UserDetails(
+                                it,
+                                null,
+                                obj.getDouble("latitude"),
+                                obj.getDouble("longitude"),
+                                ""
+                            )
+                        }?.let {
+                            _users.value.add(
+                                it
+                            )
+                        }
+                        Log.d("Mio", "Recibido objeto creadp: $event")
+                    }
+                    SubscriptionHandling.Event.UPDATE -> {
+                        _users.value.find {
+                            it.username == obj.getString("username")
+                        }
+                        Log.d("Mio", "Actualizado objeto: $event")
+                    }
+                    SubscriptionHandling.Event.DELETE ->{
+                        val i = _users.value.indexOfFirst {
+                            it.username == obj.getString("username")
+                        }
+                        _users.value.removeAt(i)
+                        Log.d("Mio", "Eliminado objeto: $event")
+                    }
+                    SubscriptionHandling.Event.ENTER ->{
+                        val user = obj.getString("username")
+                        val latitude = obj.getDouble("latitude")
+                        val longitude = obj.getDouble("longitude")
+
+                        if(user != null)
+                            _users.value.add(UserDetails(user,null, latitude, longitude, ""))
+                    }
+                    else -> {}
+                }
             }
         }
-        subscriptionHandling.handleError { query, exception ->
+
+        subscriptionHandling.handleError { _, exception ->
             Log.i("live", "no cambia $exception")
         }
     }
@@ -144,43 +193,11 @@ class MainScreenViewModel : ViewModel() {
         }
     }
 
-    fun activeCreate() {
-        if (_isOnline.value) {
-
-        }
-        viewModelScope.launch {
-            _isOnline.value = true
-            val test = ParseQuery<ParseObject>("Users")
-
-            val obj = ParseObject("Users")
-            obj.put("username", ParseUser.getCurrentUser().username)
-            obj.put("latitude", _userLocation.value.latitude)
-            obj.put("longitude", _userLocation.value.longitude)
-            obj.saveInBackground()
-            _otherUser.value.objectID = obj.objectId
-        }
-    }
 
     private fun decodeImage(imageString: String): Bitmap? {
         //decode base64 string to image
         val imageBytes = Base64.decode(imageString, Base64.DEFAULT)
         return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-    }
-
-    private fun addUser(
-        username: String,
-        latitude: Double,
-        longitude: Double,
-        image: Bitmap,
-        objectId: String
-    ): UserDetails {
-        return UserDetails(
-            image = image,
-            username = username,
-            latitude = latitude,
-            longitude = longitude,
-            objectID = objectId
-        )
     }
 
 }
