@@ -6,6 +6,7 @@ import android.util.Base64
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ntn.taller3.data.UserDetails
 import com.parse.ParseException
 import com.parse.ParseObject
 import com.parse.ParseQuery
@@ -20,7 +21,7 @@ import kotlinx.coroutines.withContext
 
 class UsersViewModel: ViewModel() {
 
-    private val _users = MutableStateFlow<List<UserDetails>>(emptyList())
+    private val _users = MutableStateFlow<MutableList<UserDetails>>(mutableListOf())
     val users = _users.asStateFlow()
 
 
@@ -40,11 +41,12 @@ class UsersViewModel: ViewModel() {
             image = image,
             username = username,
             latitude = latitude,
-            longitude = longitude
+            longitude = longitude,
+            objectID = ""
         )
     }
 
-    fun onChangeList() {
+    private fun onChangeList() {
 
         val query = ParseQuery<ParseObject>("Users")
 
@@ -53,8 +55,7 @@ class UsersViewModel: ViewModel() {
 
                 //Log.d("multiple", "Objects: $objects")
                 var users_list:List<UserDetails> = emptyList<UserDetails>()
-
-                for(i in objects!!){
+                for(i in objects){
 
                     val username: String? = i.getString("username")
                     val image: Bitmap? = decodeImage(i.getString("image")!!)
@@ -62,12 +63,11 @@ class UsersViewModel: ViewModel() {
                     val longitude: Double = i.getDouble("longitude")
 
                     if (username != null && image != null) {
-                            users_list += addUser(username,latitude,longitude,image)
+                            _users.value.add(addUser(username,latitude,longitude,image))
                     }
+
+
                 }
-
-                _users.value=users_list
-
             } else {
                 Log.e("multiple", "ParseError: ", e)
             }
@@ -107,14 +107,16 @@ class UsersViewModel: ViewModel() {
         val subscriptionHandling: SubscriptionHandling<ParseObject> = parseLiveQueryClient.subscribe(parseQuery)
 
         subscriptionHandling.handleSubscribe {
-            //Log.i("live","suscribed")
+            Log.i("live","suscribed")
         }
-        subscriptionHandling.handleEvents { query, event, `object` ->
-            //Log.i("live","si cambia"+query.toString())
-            onChangeList()
+        subscriptionHandling.handleEvent(SubscriptionHandling.Event.CREATE){
+            query, obj ->
+            run {
+
+            }
         }
         subscriptionHandling.handleError { query, exception ->
-            //Log.i("live","no cambia"+exception.toString())
+            Log.i("live", "no cambia $exception")
         }
 
         //parseLiveQueryClient.unsubscribe(parseQuery)

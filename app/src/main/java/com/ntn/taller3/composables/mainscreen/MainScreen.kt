@@ -4,7 +4,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.content.Context
-import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -15,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Power
 import androidx.compose.material.icons.filled.SupervisorAccount
-import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.Color
@@ -35,19 +33,15 @@ import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.tasks.Task
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import com.ntn.taller3.composables.common.DialogBoxLoading
-import com.ntn.taller3.composables.navigation.Screens
-import com.ntn.taller3.services.Locator
 import com.ntn.taller3.services.LocatorViewModel
 import com.ntn.taller3.services.Reader
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.ntn.taller3.composables.navigation.Screens
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -58,12 +52,18 @@ fun MainScreen(navController: NavController, _viewModel: MainScreenViewModel = v
         DialogBoxLoading()
     }
     RequestLocation(scaffoldState)
-    Scaffold(
-        topBar = { TopBar(scaffoldState, navController = navController) },
-        scaffoldState = scaffoldState
-    ) {
-        Map()
+    when(_viewModel.uiState.value){
+        is UIState.Map -> {
+            Scaffold(
+                topBar = { TopBar(scaffoldState, navController = navController) },
+                scaffoldState = scaffoldState
+            ) {
+                Map()
+            }
+        }
+        is UIState.ListOnlineUsers -> UsersScreen()
     }
+
 }
 
 @Composable
@@ -76,10 +76,12 @@ private fun TopBar(
     val coroutineScope = rememberCoroutineScope()
     TopAppBar(title = { Text("Taller #3") },
         actions = {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { _viewModel.setOnline() }) {
                 Icon(Icons.Default.Power, "", tint = if (isOnline) Color.Green else Color.Red)
             }
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = {
+                _viewModel.onUIStateChange(UIState.ListOnlineUsers)
+            }) {
                 Icon(Icons.Default.SupervisorAccount, "")
             }
             IconButton(onClick = {
@@ -113,8 +115,10 @@ private fun Map(
     val internalLocations by remember {
         mutableStateOf(_locationsViewModel.internalLocations)
     }
+    val cameraPosition = rememberCameraPositionState()
     val userLocation by _viewModel.userLocation.collectAsState()
-    GoogleMap {
+    val isWatching by _viewModel.isWatching.collectAsState()
+    GoogleMap(cameraPositionState = cameraPosition) {
         internalLocations.forEach {
             Marker(
                 state = MarkerState(
@@ -134,6 +138,17 @@ private fun Map(
             icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN),
             title = "Posición del usuario"
         )
+
+        if(isWatching){
+            val otherUser by _viewModel.otherUser.collectAsState()
+            Marker(
+                state = MarkerState(
+                    position = LatLng(otherUser.latitude, otherUser.longitude)
+                ),
+                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE),
+                title = otherUser.username
+            )
+        }
     }
 }
 

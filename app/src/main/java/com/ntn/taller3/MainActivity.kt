@@ -8,7 +8,10 @@ import com.ntn.taller3.composables.auth.LoginScreen
 import com.ntn.taller3.composables.navigation.RootNavGraph
 import com.ntn.taller3.composables.navigation.Screens
 import com.ntn.taller3.ui.theme.Taller3Theme
+import com.parse.ParseObject
+import com.parse.ParseQuery
 import com.parse.ParseUser
+import com.parse.ktx.whereMatches
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,4 +29,22 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    override fun onStop() {
+        super.onStop()
+        val currentUser = ParseUser.getCurrentUser()
+        if(currentUser != null){
+            val query = ParseQuery.getQuery<ParseObject>("Users")
+            query.whereMatches("username", currentUser.username)
+            val task = query.findInBackground()
+            task.onSuccess(){
+                println("Hola")
+                it.result.forEach { obj ->
+                    obj.deleteInBackground()
+                }
+            }
+
+        }
+        //TODO DELETE PARSE OBJECTS IN SERVER
+    }
+
 }

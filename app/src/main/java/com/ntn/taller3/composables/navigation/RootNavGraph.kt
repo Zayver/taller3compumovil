@@ -7,7 +7,7 @@ import androidx.navigation.compose.composable
 import com.ntn.taller3.composables.auth.LoginScreen
 import com.ntn.taller3.composables.auth.SignUpScreen
 import com.ntn.taller3.composables.mainscreen.MainScreen
-import com.ntn.taller3.composables.users.UsersScreen
+import com.ntn.taller3.composables.mainscreen.UsersScreen
 
 @Composable
 fun RootNavGraph(navController: NavHostController, start: String){
