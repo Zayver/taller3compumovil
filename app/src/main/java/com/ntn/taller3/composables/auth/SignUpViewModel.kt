@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.parse.ParseFile
+import com.google.firebase.storage.FirebaseStorage
 import com.parse.ParseUser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -96,15 +97,14 @@ class SignUpViewModel : ViewModel() {
             user.put("type_id", _selectedTypeText.value)
             user.put("id_number", _id.value)
 
-            /* TODO DESCOMENTAR SI SE ACTIVA LA SUBIDA PUBLICA DE ARCHIVOS EN EL SERVIDOR
-            val bytes = _image.value?.let { uri ->
-                contentResolver.openInputStream(uri)?.use { it.buffered().readBytes() }
-            }
-            val file = ParseFile(bytes, "image/'*") TODO QUITAR COMILLAAAAA
-            file.save()
-            user.put("image", file)
-            */
-            withTimeout(3000) {
+      //  var img:String? = encodeImage(_bitmap.value)
+            uploadImage(_image.value!!)
+/*
+            if (!img.isNullOrEmpty())
+                user.put("image", img)
+
+ */
+            withTimeout(2000) {
                 try {
                     user.signUp()
                 } catch (e: Exception) {
@@ -116,6 +116,38 @@ class SignUpViewModel : ViewModel() {
         }
         result.await()
     }
+
+    private fun encodeImage(bm: Bitmap?): String? {
+        val baos = ByteArrayOutputStream()
+        if (bm != null) {
+            bm.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        }
+        val b = baos.toByteArray()
+        return Base64.encodeToString(b, Base64.DEFAULT)
+    }
+
+    private fun uploadImage(image:Uri) {
+
+        //Firebase firestore
+        // Create a storage reference from our app
+        var storageRef = FirebaseStorage.getInstance().reference
+
+        // Create a reference to 'images/mountains.jpg'
+        val uploadTask = storageRef.child("images/"+_username.value+".jpg").putFile(image)
+        uploadTask.addOnSuccessListener {
+            Log.e("Frebase", "Image Upload success")
+        //    val uploadedURL = storageRef.child("images/"+_username.value+".jpg").downloadUrl
+      //      Log.e("Firebase", "Uploaded $uploadedURL")
+        }.addOnFailureListener {
+            Log.e("Frebase", "Image Upload fail")
+     //       mProgressDialog.dismiss()
+        }
+    }
+
+
+
+
+
 
 
 }

@@ -7,6 +7,12 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+
 
     <application
         android:allowBackup="true"
@@ -22,6 +28,15 @@
         tools:targetApi="31"
         android:usesCleartextTraffic="true"
         >
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_baseline_circle_notifications_24" />
+        <!-- Set color used with incoming notification messages. This is used when no color is set for the incoming
+             notification message. See README(https://goo.gl/6BKBk7) for more. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/teal_700" />
 
 
         <meta-data
@@ -42,7 +57,6 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -58,6 +72,34 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+
+        <receiver android:name="com.parse.ParsePushBroadcastReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="com.parse.push.intent.RECEIVE" />
+                <action android:name="com.parse.push.intent.OPEN" />
+                <action android:name="com.parse.push.intent.DELETE" />
+            </intent-filter>
+        </receiver>
+
+        <meta-data
+            android:name="com.parse.SERVER_URL"
+            android:value="http://3.80.151.200:1337/parse" />
+        <meta-data
+            android:name="com.parse.APPLICATION_ID"
+            android:value="findit" />
+        <meta-data
+            android:name="com.parse.CLIENT_KEY"
+            android:value="finditkey" />
+        <meta-data android:name="com.parse.push.gcm_sender_id"
+            android:value="id:1072832924272" />
+
+        <service
+            android:name="com.parse.fcm.ParseFirebaseMessagingService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

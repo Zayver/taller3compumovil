@@ -2,6 +2,10 @@ package com.ntn.taller3.app
 
 import android.app.Application
 import com.parse.Parse
+import com.parse.ParseInstallation
+
+
+
 
 class App : Application() {
     companion object {
@@ -17,6 +21,13 @@ class App : Application() {
                 .server(PARSE_SERVER)
                 .build()
         )
+        //Notifications
+        ParseInstallation.getCurrentInstallation().saveInBackground()
+
+        val installation = ParseInstallation.getCurrentInstallation()
+        installation.put("GCMSenderId", "1072832924272")
+        installation.saveInBackground()
+
     }
 
 }
