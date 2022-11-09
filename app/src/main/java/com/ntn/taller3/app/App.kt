@@ -21,11 +21,13 @@ class App : Application() {
                 .server(PARSE_SERVER)
                 .build()
         )
+        //Notifications
         ParseInstallation.getCurrentInstallation().saveInBackground()
 
         val installation = ParseInstallation.getCurrentInstallation()
         installation.put("GCMSenderId", "1072832924272")
         installation.saveInBackground()
+
     }
 
 }

@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.storage.FirebaseStorage
 import com.parse.ParseUser
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -107,10 +108,13 @@ class SignUpViewModel : ViewModel() {
         user.put("type_id", _selectedTypeText.value)
         user.put("id_number", _id.value)
 
-        var img:String? = encodeImage(_bitmap.value)
-
+      //  var img:String? = encodeImage(_bitmap.value)
+            uploadImage(_image.value!!)
+/*
             if (!img.isNullOrEmpty())
                 user.put("image", img)
+
+ */
             withTimeout(2000) {
                 try {
                     user.signUp()
@@ -131,6 +135,24 @@ class SignUpViewModel : ViewModel() {
         }
         val b = baos.toByteArray()
         return Base64.encodeToString(b, Base64.DEFAULT)
+    }
+
+    private fun uploadImage(image:Uri) {
+
+        //Firebase firestore
+        // Create a storage reference from our app
+        var storageRef = FirebaseStorage.getInstance().reference
+
+        // Create a reference to 'images/mountains.jpg'
+        val uploadTask = storageRef.child("images/"+_username.value+".jpg").putFile(image)
+        uploadTask.addOnSuccessListener {
+            Log.e("Frebase", "Image Upload success")
+        //    val uploadedURL = storageRef.child("images/"+_username.value+".jpg").downloadUrl
+      //      Log.e("Firebase", "Uploaded $uploadedURL")
+        }.addOnFailureListener {
+            Log.e("Frebase", "Image Upload fail")
+     //       mProgressDialog.dismiss()
+        }
     }
 
 

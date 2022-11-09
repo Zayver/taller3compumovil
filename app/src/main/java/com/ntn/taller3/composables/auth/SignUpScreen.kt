@@ -30,6 +30,8 @@ import com.ntn.taller3.composables.common.DialogBoxLoading
 import com.ntn.taller3.composables.common.TitledTextField
 import com.ntn.taller3.composables.navigation.Screens
 import kotlinx.coroutines.launch
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -177,7 +179,14 @@ fun SignUpScreen(navController: NavController,_viewModel: SignUpViewModel = view
                                 .createSource(context.contentResolver, it)
                             _viewModel.setBitmap(ImageDecoder.decodeBitmap(source))
                         }
-
+                        Image(
+                            painter = rememberImagePainter(
+                                data  = image  // or ht
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier.size(400.dp)
+                        )
+/*
                         bitmap.value?.let { btm ->
                             Image(
                                 bitmap = btm.asImageBitmap(),
@@ -185,6 +194,8 @@ fun SignUpScreen(navController: NavController,_viewModel: SignUpViewModel = view
                                 modifier = Modifier.size(400.dp)
                             )
                         }
+
+ */
                     }
                 }
 
