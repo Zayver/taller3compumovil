@@ -2,21 +2,19 @@ package com.ntn.taller3.composables.mainscreen
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Build
-import android.util.Base64
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.storage.FirebaseStorage
 import com.ntn.taller3.data.UserDetails
 import com.parse.ParseObject
 import com.parse.ParseQuery
 import com.parse.ParseUser
-import com.parse.ktx.whereNotEqualTo
 import com.parse.livequery.ParseLiveQueryClient
 import com.parse.livequery.SubscriptionHandling
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +23,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import java.io.File
+import kotlin.math.pow
 
 sealed class UIState {
     object Map : UIState()
@@ -44,6 +44,9 @@ class MainScreenViewModel : ViewModel() {
 
     private val _otherUser = MutableStateFlow(UserDetails("", null, 0.0, 0.0, ""))
     val otherUser = _otherUser.asStateFlow()
+
+    private val _otherUserUri = MutableStateFlow<Bitmap?>(null)
+    val otherUserUri = _otherUserUri.asStateFlow()
 
     private val _users = MutableStateFlow<MutableList<UserDetails>>(mutableStateListOf())
     val users = _users.asStateFlow()
@@ -215,14 +218,24 @@ class MainScreenViewModel : ViewModel() {
     fun onWatchingOtherUser(user: UserDetails) {
         _isWatching.value = true
         _otherUser.value = user
+        retrieveUserImage()
 
     }
 
 
-    private fun decodeImage(imageString: String): Bitmap? {
-        //decode base64 string to image
-        val imageBytes = Base64.decode(imageString, Base64.DEFAULT)
-        return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+    private fun retrieveUserImage() {
+        val localFile = File.createTempFile("images", "jpg")
+        val storageRef = FirebaseStorage.getInstance().reference
+        val uploadTask = storageRef.child("images/"+_otherUser.value.username+".jpg").getBytes(
+            1024.0.pow(50.0).toLong())
+        uploadTask.addOnSuccessListener {
+            _otherUserUri.value = BitmapFactory.decodeByteArray(it, 0, it.size)
+
+            Log.e("Frebase", "Image Retrieve success: ${localFile.toUri()}")
+        }.addOnFailureListener {
+            Log.e("Frebase", "Image Retrive fail")
+            //       mProgressDialog.dismiss()
+        }
     }
 
 }

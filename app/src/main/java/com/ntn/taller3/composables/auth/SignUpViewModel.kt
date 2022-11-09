@@ -1,11 +1,9 @@
 package com.ntn.taller3.composables.auth
 
-import android.R.attr.data
-import android.content.ContentResolver
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.parse.ParseFile
 import com.google.firebase.storage.FirebaseStorage
 import com.parse.ParseUser
 import kotlinx.coroutines.Dispatchers
@@ -83,7 +81,7 @@ class SignUpViewModel : ViewModel() {
     }
 
 
-    suspend fun signup(contentResolver: ContentResolver) {
+    suspend fun signup() {
         _isLoading.value = true
         val result = viewModelScope.async(Dispatchers.IO) {
             val user = ParseUser()
@@ -117,27 +115,16 @@ class SignUpViewModel : ViewModel() {
         result.await()
     }
 
-    private fun encodeImage(bm: Bitmap?): String? {
-        val baos = ByteArrayOutputStream()
-        if (bm != null) {
-            bm.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-        }
-        val b = baos.toByteArray()
-        return Base64.encodeToString(b, Base64.DEFAULT)
-    }
-
     private fun uploadImage(image:Uri) {
 
         //Firebase firestore
         // Create a storage reference from our app
-        var storageRef = FirebaseStorage.getInstance().reference
+        val storageRef = FirebaseStorage.getInstance().reference
 
         // Create a reference to 'images/mountains.jpg'
         val uploadTask = storageRef.child("images/"+_username.value+".jpg").putFile(image)
         uploadTask.addOnSuccessListener {
             Log.e("Frebase", "Image Upload success")
-        //    val uploadedURL = storageRef.child("images/"+_username.value+".jpg").downloadUrl
-      //      Log.e("Firebase", "Uploaded $uploadedURL")
         }.addOnFailureListener {
             Log.e("Frebase", "Image Upload fail")
      //       mProgressDialog.dismiss()

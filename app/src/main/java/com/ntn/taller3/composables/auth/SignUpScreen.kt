@@ -180,7 +180,7 @@ fun SignUpScreen(navController: NavController, _viewModel: SignUpViewModel = vie
                     Button(onClick = {
                         coroutineScope.launch {
                             try {
-                                _viewModel.signup(context.contentResolver)
+                                _viewModel.signup()
                                 navController.popBackStack()
                                 navController.navigate(Screens.MainScreen.route)
                             } catch (e: Exception) {
