@@ -10,10 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.ntn.taller3.data.UserDetails
-import com.parse.ParseException
-import com.parse.ParseObject
-import com.parse.ParseQuery
-import com.parse.ParseUser
+import com.parse.*
 import com.parse.livequery.ParseLiveQueryClient
 import com.parse.livequery.SubscriptionHandling
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+
 
 sealed class UIState {
     object Map : UIState()
@@ -55,6 +53,14 @@ class MainScreenViewModel : ViewModel() {
 
     init {
         getOnlineUsers()
+    }
+
+    private fun pushNofification(user:String){
+        // When users indicate they are Giants fans, we subscribe them to that channel.
+        val push = ParsePush()
+        push.setChannel("Notifications")
+        push.setMessage(user+" Ahora esta disponible.")
+        push.sendInBackground()
     }
 
     private fun getOnlineUsers() {
@@ -122,11 +128,13 @@ class MainScreenViewModel : ViewModel() {
             viewModelScope.launch {
                 _isOnline.value = true
                 val obj = ParseObject("Users")
-                obj.put("username", ParseUser.getCurrentUser().username)
+                val username:String = ParseUser.getCurrentUser().username
+                obj.put("username", username)
                 obj.put("latitude", _userLocation.value.latitude)
                 obj.put("longitude", _userLocation.value.longitude)
                 obj.save()
                 userObjId = obj.objectId
+                pushNofification(username)
             }
         } else {
             viewModelScope.launch {
