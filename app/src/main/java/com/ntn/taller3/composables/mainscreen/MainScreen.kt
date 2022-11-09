@@ -1,6 +1,7 @@
 package com.ntn.taller3.composables.mainscreen
 
 import android.Manifest
+import android.R.attr.data
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.content.Context
@@ -11,6 +12,7 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.Image
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
@@ -21,6 +23,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -36,15 +39,15 @@ import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.*
+import com.ntn.taller3.R
 import com.ntn.taller3.composables.common.DialogBoxLoading
+import com.ntn.taller3.composables.navigation.Screens
 import com.ntn.taller3.services.LocatorViewModel
 import com.ntn.taller3.services.Reader
+import com.parse.ParsePush
 import kotlinx.coroutines.launch
-import com.ntn.taller3.composables.navigation.Screens
+
 
 @OptIn(ExperimentalAnimationApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -160,6 +163,10 @@ private fun Map(
                 icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE),
                 title = otherUser.username
             )
+        }
+
+        MarkerInfoWindowContent(state = MarkerState(LatLng(4.640347, -74.085859))){
+            Image(painter = painterResource(R.drawable.ic_launcher_background), contentDescription = "")
         }
     }
 }

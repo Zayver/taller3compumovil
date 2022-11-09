@@ -1,13 +1,8 @@
 package com.ntn.taller3.composables.auth
 
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,7 +10,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,9 +19,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import com.ntn.taller3.composables.common.DialogBoxLoading
+import com.ntn.taller3.composables.common.TitledPasswordTextField
 import com.ntn.taller3.composables.common.TitledTextField
 import com.ntn.taller3.composables.navigation.Screens
 import kotlinx.coroutines.launch
@@ -167,11 +160,12 @@ fun SignUpScreen(navController: NavController, _viewModel: SignUpViewModel = vie
                     AsyncImage(model = image, contentDescription = "")
                 }
 
-                TitledTextField(
+                TitledPasswordTextField(
                     title = "Contraseña",
                     hint = "Contraseña",
+                    onTextChange = { _viewModel.setPassword(it) },
                     value = password
-                ) { _viewModel.setPassword(it) } //T
+                )
                 Spacer(modifier = Modifier.weight(1f))
 
 
@@ -186,7 +180,7 @@ fun SignUpScreen(navController: NavController, _viewModel: SignUpViewModel = vie
                     Button(onClick = {
                         coroutineScope.launch {
                             try {
-                                _viewModel.signup()
+                                _viewModel.signup(context.contentResolver)
                                 navController.popBackStack()
                                 navController.navigate(Screens.MainScreen.route)
                             } catch (e: Exception) {

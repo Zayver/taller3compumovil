@@ -1,22 +1,17 @@
 package com.ntn.taller3.composables.auth
 
-import android.R
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.R.attr.data
+import android.content.ContentResolver
 import android.net.Uri
-import android.util.Base64
-import android.util.Log
-import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.parse.ParseFile
 import com.parse.ParseUser
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withTimeout
-import java.io.ByteArrayOutputStream
-import java.io.File
 
 
 class SignUpViewModel : ViewModel() {
@@ -87,9 +82,9 @@ class SignUpViewModel : ViewModel() {
     }
 
 
-    suspend fun signup() {
+    suspend fun signup(contentResolver: ContentResolver) {
         _isLoading.value = true
-        val result = viewModelScope.async {
+        val result = viewModelScope.async(Dispatchers.IO) {
             val user = ParseUser()
             user.username = _username.value
             user.setPassword(_password.value)
@@ -101,9 +96,15 @@ class SignUpViewModel : ViewModel() {
             user.put("type_id", _selectedTypeText.value)
             user.put("id_number", _id.value)
 
-
-
-            withTimeout(2000) {
+            /* TODO DESCOMENTAR SI SE ACTIVA LA SUBIDA PUBLICA DE ARCHIVOS EN EL SERVIDOR
+            val bytes = _image.value?.let { uri ->
+                contentResolver.openInputStream(uri)?.use { it.buffered().readBytes() }
+            }
+            val file = ParseFile(bytes, "image/'*") TODO QUITAR COMILLAAAAA
+            file.save()
+            user.put("image", file)
+            */
+            withTimeout(3000) {
                 try {
                     user.signUp()
                 } catch (e: Exception) {
@@ -114,15 +115,6 @@ class SignUpViewModel : ViewModel() {
             }
         }
         result.await()
-    }
-
-    private fun encodeImage(bm: Bitmap?): String? {
-        val baos = ByteArrayOutputStream()
-        if (bm != null) {
-            bm.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-        }
-        val b = baos.toByteArray()
-        return Base64.encodeToString(b, Base64.DEFAULT)
     }
 
 
