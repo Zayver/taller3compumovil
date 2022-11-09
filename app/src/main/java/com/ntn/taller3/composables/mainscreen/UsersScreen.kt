@@ -1,8 +1,12 @@
 package com.ntn.taller3.composables.mainscreen
 
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -13,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,8 +35,11 @@ fun UsersScreen(_viewModel: MainScreenViewModel = viewModel()) {
             modifier = Modifier.padding(it),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            itemsIndexed(otherUsers) { index, item ->
-                UserCard(emp = item)
+            Log.d("Mio", "Column updated")
+            itemsIndexed(otherUsers) { _, obj ->
+                run {
+                    UserCard(emp = obj)
+                }
             }
         }
     }
@@ -51,16 +59,20 @@ private fun TopBar(_viewModel: MainScreenViewModel = viewModel()) {
 
 
 @Composable
-private fun UserCard(emp: UserDetails) {
+private fun UserCard(emp: UserDetails, _viewModel: MainScreenViewModel = viewModel()) {
     Card(
         modifier = Modifier
             .padding(horizontal = 8.dp, vertical = 8.dp)
-            .fillMaxWidth(),
-        elevation = 2.dp,
-        backgroundColor = androidx.compose.ui.graphics.Color.Blue,
-        shape = RoundedCornerShape(corner = CornerSize(16.dp))
+            .fillMaxWidth()
+            .clickable {
+                _viewModel.onWatchingOtherUser(emp)
+                _viewModel.onUIStateChange(UIState.Map)
+            },
+        elevation = 10.dp,
+        shape = RoundedCornerShape(corner = CornerSize(16.dp)),
+        border = BorderStroke(10.dp, color = Color.Black),
 
-    ) {
+        ) {
 
         Row(modifier = Modifier.padding(20.dp)) {
             Column(
@@ -70,7 +82,7 @@ private fun UserCard(emp: UserDetails) {
                 Text(
                     text = emp.username,
                     style = TextStyle(
-                        color = androidx.compose.ui.graphics.Color.Black,
+                        color = Color.Black,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -78,14 +90,14 @@ private fun UserCard(emp: UserDetails) {
                 Text(
                     text = "Latitude :- " + emp.latitude,
                     style = TextStyle(
-                        color = androidx.compose.ui.graphics.Color.Black,
+                        color = Color.Black,
                         fontSize = 15.sp
                     )
                 )
                 Text(
                     text = "Logitude :- " + emp.longitude,
                     style = TextStyle(
-                        color = androidx.compose.ui.graphics.Color.Black,
+                        color = Color.Black,
                         fontSize = 15.sp
                     )
                 )

@@ -7,6 +7,7 @@ import android.util.Base64
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -44,7 +45,7 @@ class MainScreenViewModel : ViewModel() {
     private val _otherUser = MutableStateFlow(UserDetails("", null, 0.0, 0.0, ""))
     val otherUser = _otherUser.asStateFlow()
 
-    private val _users = MutableStateFlow<MutableList<UserDetails>>(mutableListOf())
+    private val _users = MutableStateFlow<MutableList<UserDetails>>(mutableStateListOf())
     val users = _users.asStateFlow()
 
     private val _isWatching = MutableStateFlow(false)
@@ -67,20 +68,30 @@ class MainScreenViewModel : ViewModel() {
 
         subscriptionHandling.handleSubscribe { query ->
             query.whereNotEqualTo("username", ParseUser.getCurrentUser().username)
-            query.findInBackground().onSuccess {
-                listResult ->
+            query.findInBackground().onSuccess { listResult ->
                 listResult.result.forEach {
                     val username = it.getString("username")
                     val latitude = it.getDouble("latitude")
                     val longitude = it.getDouble("longitude")
-                    if(username != null)
-                        _users.value.add(UserDetails(username, null, latitude, longitude, ""))
+                    if (username != null)
+                        _users.value.add(
+                            UserDetails(
+                                username,
+                                null,
+                                latitude,
+                                longitude,
+                                it.objectId
+                            )
+                        )
                 }
             }
             Log.d("Mio", "Finished initial query")
         }
 
         subscriptionHandling.handleEvents { _, event, obj ->
+            if(obj.getString("username") == ParseUser.getCurrentUser().username){
+                return@handleEvents
+            }
             run {
                 when (event) {
                     SubscriptionHandling.Event.CREATE -> {
@@ -90,7 +101,7 @@ class MainScreenViewModel : ViewModel() {
                                 null,
                                 obj.getDouble("latitude"),
                                 obj.getDouble("longitude"),
-                                ""
+                                obj.objectId
                             )
                         }?.let {
                             _users.value.add(
@@ -100,25 +111,33 @@ class MainScreenViewModel : ViewModel() {
                         Log.d("Mio", "Recibido objeto creadp: $event")
                     }
                     SubscriptionHandling.Event.UPDATE -> {
-                        _users.value.find {
+                        val res = _users.value.indexOfFirst {
                             it.username == obj.getString("username")
                         }
+                        _users.value[res] = _users.value[res].copy(
+                            latitude = obj.getDouble("latitude"),
+                            longitude = obj.getDouble("longitude")
+                        )
+                        if (_isWatching.value) {
+                            _otherUser.value = _otherUser.value.copy(
+                                latitude = obj.getDouble("latitude"),
+                                longitude = obj.getDouble("longitude")
+                            )
+                        }
+
                         Log.d("Mio", "Actualizado objeto: $event")
                     }
-                    SubscriptionHandling.Event.DELETE ->{
+                    SubscriptionHandling.Event.DELETE -> {
                         val i = _users.value.indexOfFirst {
                             it.username == obj.getString("username")
                         }
                         _users.value.removeAt(i)
+                        Log.d("Mio", "Para borrar")
+                        if(obj.objectId == _otherUser.value.objectID){
+                            _isWatching.value = false
+                            Log.d("Mio", "Borrado el marcador")
+                        }
                         Log.d("Mio", "Eliminado objeto: $event")
-                    }
-                    SubscriptionHandling.Event.ENTER ->{
-                        val user = obj.getString("username")
-                        val latitude = obj.getDouble("latitude")
-                        val longitude = obj.getDouble("longitude")
-
-                        if(user != null)
-                            _users.value.add(UserDetails(user,null, latitude, longitude, ""))
                     }
                     else -> {}
                 }
@@ -191,6 +210,12 @@ class MainScreenViewModel : ViewModel() {
                 userObjId = ""
             }
         }
+    }
+
+    fun onWatchingOtherUser(user: UserDetails) {
+        _isWatching.value = true
+        _otherUser.value = user
+
     }
 
 

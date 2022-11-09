@@ -7,7 +7,7 @@ data class UserDetails(
     val image: Bitmap?,
     val latitude: Double,
     val longitude: Double,
-    var objectID: String,
+    val objectID: String,
     ){
 
 }

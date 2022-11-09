@@ -9,6 +9,8 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
@@ -32,6 +34,7 @@ import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
@@ -43,6 +46,7 @@ import com.ntn.taller3.services.Reader
 import kotlinx.coroutines.launch
 import com.ntn.taller3.composables.navigation.Screens
 
+@OptIn(ExperimentalAnimationApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MainScreen(navController: NavController, _viewModel: MainScreenViewModel = viewModel()) {
@@ -52,17 +56,21 @@ fun MainScreen(navController: NavController, _viewModel: MainScreenViewModel = v
         DialogBoxLoading()
     }
     RequestLocation(scaffoldState)
-    when(_viewModel.uiState.value){
-        is UIState.Map -> {
-            Scaffold(
-                topBar = { TopBar(scaffoldState, navController = navController) },
-                scaffoldState = scaffoldState
-            ) {
-                Map()
+    val state by _viewModel.uiState
+    AnimatedContent(targetState = state) {
+        when(it){
+            is UIState.Map -> {
+                Scaffold(
+                    topBar = { TopBar(scaffoldState, navController = navController) },
+                    scaffoldState = scaffoldState
+                ) {
+                    Map()
+                }
             }
+            is UIState.ListOnlineUsers -> UsersScreen()
         }
-        is UIState.ListOnlineUsers -> UsersScreen()
     }
+
 
 }
 
@@ -87,6 +95,7 @@ private fun TopBar(
             IconButton(onClick = {
                 coroutineScope.launch {
                     try {
+                        _viewModel.setOnline()
                         _viewModel.logOut()
                         navController.popBackStack()
                         navController.navigate(Screens.Login.route)
@@ -115,8 +124,11 @@ private fun Map(
     val internalLocations by remember {
         mutableStateOf(_locationsViewModel.internalLocations)
     }
-    val cameraPosition = rememberCameraPositionState()
+
     val userLocation by _viewModel.userLocation.collectAsState()
+    val cameraPosition = rememberCameraPositionState(){
+        position = CameraPosition.fromLatLngZoom(userLocation, 10f)
+    }
     val isWatching by _viewModel.isWatching.collectAsState()
     GoogleMap(cameraPositionState = cameraPosition) {
         internalLocations.forEach {
@@ -216,15 +228,12 @@ fun RequestLocation(
             }
         }
     )
-    Log.d("Mio", "checkPermissionStatusvalue: $checkPermissionStatus")
     if(checkPermissionStatus){
-        Log.d("Mio", "Enter check state")
         when (PackageManager.PERMISSION_GRANTED) {
             ContextCompat.checkSelfPermission(
                 ctx,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) -> {
-                Log.d("Mio", "Permiso concedido iniciando localizacion")
                 val location by _locator.requestLocationUpdates().observeAsState()
                 location?.let {
                     _viewModel.onLocationUpdate(it)
