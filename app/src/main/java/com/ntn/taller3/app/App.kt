@@ -22,10 +22,13 @@ class App : Application() {
                 .build()
         )
         //Notifications
-        ParseInstallation.getCurrentInstallation().saveInBackground()
+        //ParseInstallation.getCurrentInstallation().saveInBackground()
 
         val installation = ParseInstallation.getCurrentInstallation()
         installation.put("GCMSenderId", "1072832924272")
+        val channels: ArrayList<String> = ArrayList()
+        channels.add("AvailableUser")
+        installation.put("channels", channels)
         installation.saveInBackground()
 
     }

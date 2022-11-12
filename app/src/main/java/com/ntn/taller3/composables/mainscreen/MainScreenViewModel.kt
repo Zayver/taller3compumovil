@@ -12,9 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.storage.FirebaseStorage
 import com.ntn.taller3.data.UserDetails
-import com.parse.ParseObject
-import com.parse.ParseQuery
-import com.parse.ParseUser
+import com.parse.*
 import com.parse.livequery.ParseLiveQueryClient
 import com.parse.livequery.SubscriptionHandling
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +21,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
+import java.io.IOException
 import kotlin.math.pow
+
 
 sealed class UIState {
     object Map : UIState()
@@ -198,7 +202,9 @@ class MainScreenViewModel : ViewModel() {
                 obj.put("longitude", _userLocation.value.longitude)
                 obj.save()
                 userObjId = obj.objectId
+
             }
+            pushAvailableNotification()
         } else {
             viewModelScope.launch {
                 val query = ParseQuery.getQuery<ParseObject>("Users")
@@ -237,5 +243,67 @@ class MainScreenViewModel : ViewModel() {
             //       mProgressDialog.dismiss()
         }
     }
+
+    private fun pushAvailableNotification() {
+
+        val client = OkHttpClient()
+        val type = "application/json; charset=utf-8".toMediaType();
+
+
+        val json: String = mapToJson("Usuario disponible",ParseUser.getCurrentUser().username+" ahora esta disponible")
+
+
+        val body = RequestBody.create(type,json);
+        val request = Request.Builder()
+            .url("http://3.80.151.200:1337/parse/push")
+            .addHeader("X-Parse-Application-Id", "findit")
+            .addHeader("X-Parse-Master-Key", "finditkey")
+            .post(body)
+            .build()
+        try {
+            val response = client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    // Handle this
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    Log.i("response",response.toString())
+                }
+            })
+        } catch (e:IOException){
+
+        }
+    }
+
+    private fun mapToJson(title_message:String, alert_message: String): String {
+        val json = JSONObject()
+
+        var list_channels = JSONArray()
+        list_channels.put("AvailableUser")
+
+        json.put("channels",list_channels)
+
+        val title = JSONObject()
+        val alert = JSONObject()
+
+        //title.put("title",title_message)
+        alert.put("alert",alert_message)
+        json.put("data",alert)
+
+        Log.i("json",json.toString())
+"""
+        '{
+        "channels": [
+        "AvailableUser"
+        ],
+        "data": {
+            "alert": "The Giants won against the Mets 2-3.",
+            "tittle": "The Giants won against the Mets 2-3."
+        }
+    }'
+    """
+        return json.toString()
+    }
+
 
 }
