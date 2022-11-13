@@ -2,9 +2,12 @@ package com.ntn.taller3.composables.mainscreen
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.pm.PackageManager
+import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -48,6 +51,7 @@ import com.ntn.taller3.composables.navigation.Screens
 import com.ntn.taller3.services.LocatorViewModel
 import com.ntn.taller3.services.Reader
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -78,6 +82,42 @@ fun MainScreen(navController: NavController, _viewModel: MainScreenViewModel = v
 
 }
 
+private fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
+private fun getDatafromNotification(extras:Bundle?){
+    if(extras != null) {
+        // extras.keySet().forEach{Log.i("key",it)}
+        val data =extras.getString("com.parse.Data")
+        if (data != null) {
+            Log.i("data",data)
+            val resp: JSONObject = JSONObject(data)
+            val alert =resp.getString("alert")
+            val user =resp.getString("title")
+            val title = resp.getString("user")
+            Log.i("user",user)
+            Log.i("title",alert)
+            Log.i("alert",title)
+        }
+    }
+}
+
+private fun getUserfromNotification(extras:Bundle?): String {
+    if(extras != null) {
+        val data =extras.getString("com.parse.Data")
+        if (data != null) {
+            val resp: JSONObject = JSONObject(data)
+            return resp.getString("user")
+        }
+    }
+    return ""
+}
+
+
+
 @Composable
 private fun TopBar(
     scaffoldState: ScaffoldState,
@@ -86,6 +126,8 @@ private fun TopBar(
 ) {
     val isOnline by _viewModel.isOnline.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+
+
     TopAppBar(title = { Text("Taller #3") },
         actions = {
             IconButton(onClick = { _viewModel.setOnline() }) {
@@ -128,6 +170,22 @@ private fun Map(
     val internalLocations by remember {
         mutableStateOf(_locationsViewModel.internalLocations)
     }
+
+
+
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val activity = context.findActivity()
+    val intent = activity?.intent
+
+    //Get data from notification
+    val extras: Bundle? = intent?.extras
+
+    getDatafromNotification(extras)
+
+
+
+
 
     val userLocation by _viewModel.userLocation.collectAsState()
     val cameraPosition = rememberCameraPositionState() {

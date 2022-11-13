@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
             Screens.MainScreen.route
         }
 
-        getPayload()
+       // getPayload()
 
         setContent {
             Taller3Theme {
