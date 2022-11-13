@@ -67,6 +67,7 @@ class MainScreenViewModel : ViewModel() {
         getOnlineUsers()
     }
 
+
     private fun getOnlineUsers() {
         val parseLiveQueryClient: ParseLiveQueryClient = ParseLiveQueryClient.Factory.getClient()
         val parseQuery = ParseQuery<ParseObject>("Users")
@@ -80,11 +81,12 @@ class MainScreenViewModel : ViewModel() {
                     val username = it.getString("username")
                     val latitude = it.getDouble("latitude")
                     val longitude = it.getDouble("longitude")
+                    val image = username?.let { it1 -> retrieveUserImage(it1) }
                     if (username != null)
                         _users.value.add(
                             UserDetails(
                                 username,
-                                null,
+                                image,
                                 latitude,
                                 longitude,
                                 it.objectId
@@ -244,13 +246,30 @@ class MainScreenViewModel : ViewModel() {
         }
     }
 
+    private fun retrieveUserImage(user:String): Bitmap? {
+        val localFile = File.createTempFile("images", "jpg")
+        val storageRef = FirebaseStorage.getInstance().reference
+        val uploadTask = storageRef.child("images/"+user+".jpg").getBytes(
+            1024.0.pow(50.0).toLong())
+        var bitmap: Bitmap? = null
+        uploadTask.addOnSuccessListener {
+            bitmap = BitmapFactory.decodeByteArray(it, 0, it.size)
+
+            Log.e("Frebase", "Image Retrieve success: ${localFile.toUri()}")
+        }.addOnFailureListener {
+            Log.e("Frebase", "Image Retrive fail")
+            //       mProgressDialog.dismiss()
+        }
+        return bitmap
+    }
+
     private fun pushAvailableNotification() {
 
         val client = OkHttpClient()
         val type = "application/json; charset=utf-8".toMediaType();
 
 
-        val json: String = mapToJson("Usuario disponible",ParseUser.getCurrentUser().username+" ahora esta disponible")
+        val json: String = mapToJson("Nuevo usuario disponible  \uD83D\uDDFA️\uD83C\uDDE8\uD83C\uDDF4",ParseUser.getCurrentUser().username+" ahora esta disponible para seguirlo \uD83E\uDDED \uD83D\uDCCD \uD83D\uDCCD",ParseUser.getCurrentUser().username)
 
 
         val body = RequestBody.create(type,json);
@@ -275,7 +294,7 @@ class MainScreenViewModel : ViewModel() {
         }
     }
 
-    private fun mapToJson(title_message:String, alert_message: String): String {
+    private fun mapToJson(title_message:String, alert_message: String,username:String): String {
         val json = JSONObject()
 
         var list_channels = JSONArray()
@@ -283,12 +302,12 @@ class MainScreenViewModel : ViewModel() {
 
         json.put("channels",list_channels)
 
-        val title = JSONObject()
-        val alert = JSONObject()
+        val data = JSONObject()
 
-        //title.put("title",title_message)
-        alert.put("alert",alert_message)
-        json.put("data",alert)
+        data.put("alert",alert_message)
+        data.put("title",title_message)
+        data.put("user",username)
+        json.put("data",data)
 
         Log.i("json",json.toString())
 """

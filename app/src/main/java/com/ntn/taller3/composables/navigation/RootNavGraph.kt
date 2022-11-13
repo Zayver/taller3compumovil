@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navDeepLink
 import com.ntn.taller3.composables.auth.LoginScreen
 import com.ntn.taller3.composables.auth.SignUpScreen
 import com.ntn.taller3.composables.mainscreen.MainScreen
@@ -21,7 +22,7 @@ fun RootNavGraph(navController: NavHostController, start: String){
         composable(Screens.Users.route){
             UsersScreen()
         }
-        composable(Screens.MainScreen.route){
+        composable(Screens.MainScreen.route, deepLinks = listOf(navDeepLink { uriPattern = "main_screen_nofication" })){
             MainScreen(navController)
         }
     }
