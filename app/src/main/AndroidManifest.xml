@@ -73,14 +73,6 @@
                 android:value="" />
         </activity>
 
-        <receiver android:name="com.parse.ParsePushBroadcastReceiver" android:exported="false">
-            <intent-filter>
-                <action android:name="com.parse.push.intent.RECEIVE" />
-                <action android:name="com.parse.push.intent.OPEN" />
-                <action android:name="com.parse.push.intent.DELETE" />
-            </intent-filter>
-        </receiver>
-
         <meta-data
             android:name="com.parse.SERVER_URL"
             android:value="http://3.80.151.200:1337/parse" />
@@ -99,11 +91,27 @@
 
         <service
             android:name="com.parse.fcm.ParseFirebaseMessagingService"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
         </service>
+
+
+
+        <receiver
+            android:name="com.ntn.taller3.services.notifications.CustomBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.parse.push.intent.RECEIVE" />
+                <action android:name="com.parse.push.intent.DELETE" />
+                <action android:name="com.parse.push.intent.OPEN" />
+            </intent-filter>
+        </receiver>
+
+
+
+
     </application>
 
 </manifest>

@@ -2,13 +2,10 @@ package com.ntn.taller3.composables.mainscreen
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -18,10 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -73,7 +66,7 @@ private fun UserCard(emp: UserDetails, _viewModel: MainScreenViewModel = viewMod
             },
         elevation = 10.dp,
         shape = RoundedCornerShape(corner = CornerSize(16.dp)),
-        border = BorderStroke(10.dp, color = Color.Black),
+        border = BorderStroke(10.dp, color = MaterialTheme.colors.primary),
 
         ) {
 
@@ -85,7 +78,6 @@ private fun UserCard(emp: UserDetails, _viewModel: MainScreenViewModel = viewMod
                 Text(
                     text = emp.username,
                     style = TextStyle(
-                        color = Color.Black,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -93,20 +85,19 @@ private fun UserCard(emp: UserDetails, _viewModel: MainScreenViewModel = viewMod
                 Text(
                     text = "Latitude :- " + emp.latitude,
                     style = TextStyle(
-                        color = Color.Black,
                         fontSize = 15.sp
                     )
                 )
                 Text(
                     text = "Logitude :- " + emp.longitude,
                     style = TextStyle(
-                        color = Color.Black,
                         fontSize = 15.sp
                     )
                 )
 
             }
 
+            /*
             Image(bitmap = emp.image!!.asImageBitmap(), contentDescription = "Imagen de perfil",
                 contentScale = ContentScale.FillHeight,
                 modifier = Modifier
@@ -114,6 +105,7 @@ private fun UserCard(emp: UserDetails, _viewModel: MainScreenViewModel = viewMod
                     .size(110.dp)
                     .clip((CircleShape)  ))
 
+             */
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.ntn.taller3
 
-import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -9,11 +9,11 @@ import androidx.compose.material.Surface
 import androidx.navigation.compose.rememberNavController
 import com.ntn.taller3.composables.navigation.RootNavGraph
 import com.ntn.taller3.composables.navigation.Screens
+import com.ntn.taller3.data.UserNotification
 import com.ntn.taller3.ui.theme.Taller3Theme
 import com.parse.ParseObject
 import com.parse.ParseQuery
 import com.parse.ParseUser
-import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
 
@@ -28,13 +28,21 @@ class MainActivity : ComponentActivity() {
             Screens.MainScreen.route
         }
 
-       // getPayload()
+
+
+        val argument = if (Build.VERSION.SDK_INT >= 33) {
+            intent.getParcelableExtra("userNotification", UserNotification::class.java)
+        } else {
+            intent.getParcelableExtra<UserNotification>("userNotification")
+        }
+
+        Log.d("Mio", "Argument init activity: $argument")
 
         setContent {
             Taller3Theme {
                 val navController = rememberNavController()
                 Surface() {
-                    RootNavGraph(navController = navController, start = destination)
+                    RootNavGraph(navController = navController, start = destination, argument)
                 }
             }
         }
@@ -51,28 +59,6 @@ class MainActivity : ComponentActivity() {
                 it.result.forEach { obj ->
                     obj.deleteInBackground()
                 }
-            }
-
-        }
-        //TODO DELETE PARSE OBJECTS IN SERVER
-    }
-
-    private fun getPayload(){
-        //Get data from notification
-        val extras = intent?.extras
-
-        if(extras != null) {
-            // extras.keySet().forEach{Log.i("keyyyyyyyyyyyyyyyyyyy",it)}
-            val data =extras.getString("com.parse.Data")
-            if (data != null) {
-                Log.i("data",data)
-                val resp:JSONObject = JSONObject(data)
-                val alert =resp.getString("alert")
-                val user =resp.getString("title")
-                val title = resp.getString("user")
-                Log.i("user",user)
-                Log.i("title",alert)
-                Log.i("alert",title)
             }
 
         }

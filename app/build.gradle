@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
     id 'com.google.gms.google-services'
+    id 'kotlin-parcelize'
 }
 
 android {
@@ -78,8 +79,8 @@ dependencies {
     //Parse
     implementation 'com.github.parse-community.Parse-SDK-Android:parse:4.1.0'
     implementation 'com.github.parse-community.Parse-SDK-Android:ktx:4.1.0'
+    implementation "com.github.parse-community.Parse-SDK-Android:fcm:4.1.0"
     implementation 'com.github.parse-community:ParseLiveQuery-Android:1.2.2'
-    implementation "com.github.parse-community.Parse-SDK-Android:fcm:1.26.0"
     implementation 'com.github.parse-community.Parse-SDK-Android:bolts-tasks:4.1.0'
 
     //LifeCycle

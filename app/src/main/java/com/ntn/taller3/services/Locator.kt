@@ -15,10 +15,18 @@ class Locator(context: Context) : LiveData<LatLng>() {
         private const val SHORT_GPS_UPDATE_INTERVAL = 500L
         private const val LONG_GPS_UPDATE_INTERVAL = 1000L
 
+
+        /*
         val locationRequest = LocationRequest.create()
             .setInterval(LONG_GPS_UPDATE_INTERVAL)
             .setFastestInterval(SHORT_GPS_UPDATE_INTERVAL)
-            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)*/
+
+
+
+        val locationRequest = LocationRequest.Builder(100L).setMinUpdateIntervalMillis(50L)
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY).build()
+
     }
 
 

@@ -48,6 +48,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.ntn.taller3.composables.common.DialogBoxLoading
 import com.ntn.taller3.composables.navigation.Screens
+import com.ntn.taller3.data.UserNotification
+import com.ntn.taller3.services.Locator
 import com.ntn.taller3.services.LocatorViewModel
 import com.ntn.taller3.services.Reader
 import kotlinx.coroutines.launch
@@ -57,11 +59,16 @@ import org.json.JSONObject
 @OptIn(ExperimentalAnimationApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun MainScreen(navController: NavController, _viewModel: MainScreenViewModel = viewModel()) {
+fun MainScreen(navController: NavController, userNotification: UserNotification?,_viewModel: MainScreenViewModel = viewModel()) {
     val scaffoldState = rememberScaffoldState()
     val isLoading by _viewModel.isLoading.collectAsState(false)
     if (isLoading) {
         DialogBoxLoading()
+    }
+    LaunchedEffect(key1 = Unit){
+        if(userNotification != null){
+            _viewModel.viewUserNotification(userNotification)
+        }
     }
     RequestLocation(scaffoldState)
     val state by _viewModel.uiState
@@ -72,7 +79,7 @@ fun MainScreen(navController: NavController, _viewModel: MainScreenViewModel = v
                     topBar = { TopBar(scaffoldState, navController = navController) },
                     scaffoldState = scaffoldState
                 ) {
-                    Map()
+                    Map(scaffoldState)
                 }
             }
             is UIState.ListOnlineUsers -> UsersScreen()
@@ -88,34 +95,22 @@ private fun Context.findActivity(): Activity? = when (this) {
     else -> null
 }
 
-private fun getDatafromNotification(extras:Bundle?){
-    if(extras != null) {
+private fun getDatafromNotification(extras: Bundle?) {
+    if (extras != null) {
         // extras.keySet().forEach{Log.i("key",it)}
-        val data =extras.getString("com.parse.Data")
+        val data = extras.getString("com.parse.Data")
         if (data != null) {
-            Log.i("data",data)
-            val resp: JSONObject = JSONObject(data)
-            val alert =resp.getString("alert")
-            val user =resp.getString("title")
+            Log.i("data", data)
+            val resp = JSONObject(data)
+            val alert = resp.getString("alert")
+            val user = resp.getString("title")
             val title = resp.getString("user")
-            Log.i("user",user)
-            Log.i("title",alert)
-            Log.i("alert",title)
+            Log.i("user", user)
+            Log.i("title", alert)
+            Log.i("alert", title)
         }
     }
 }
-
-private fun getUserfromNotification(extras:Bundle?): String {
-    if(extras != null) {
-        val data =extras.getString("com.parse.Data")
-        if (data != null) {
-            val resp: JSONObject = JSONObject(data)
-            return resp.getString("user")
-        }
-    }
-    return ""
-}
-
 
 
 @Composable
@@ -164,6 +159,7 @@ private fun TopBar(
 
 @Composable
 private fun Map(
+    scaffoldState: ScaffoldState,
     _viewModel: MainScreenViewModel = viewModel(),
     _locationsViewModel: Reader = viewModel()
 ) {
@@ -172,8 +168,6 @@ private fun Map(
     }
 
 
-
-    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val activity = context.findActivity()
     val intent = activity?.intent
@@ -184,13 +178,11 @@ private fun Map(
     getDatafromNotification(extras)
 
 
-
-
-
     val userLocation by _viewModel.userLocation.collectAsState()
     val cameraPosition = rememberCameraPositionState() {
         position = CameraPosition.fromLatLngZoom(userLocation, 10f)
     }
+
     val isWatching by _viewModel.isWatching.collectAsState()
     GoogleMap(cameraPositionState = cameraPosition) {
         internalLocations.forEach {
@@ -213,37 +205,41 @@ private fun Map(
             title = "Posición del usuario"
         )
 
-        /*
-        if(isWatching){
-            val otherUser by _viewModel.otherUser.collectAsState()
-            Marker(
-                state = MarkerState(
-                    position = LatLng(otherUser.latitude, otherUser.longitude)
-                ),
-                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE),
-                title = otherUser.username
-            )
-        }*/
-
         if (isWatching) {
-            LocalContext.current
             val otherUser by _viewModel.otherUser.collectAsState()
             val uri by _viewModel.otherUserUri.collectAsState()
+            LaunchedEffect(key1 = Unit) {
+                scaffoldState.snackbarHostState.showSnackbar(
+                    message = "La distancia es ${
+                        _viewModel.calculateDistance(
+                            userLocation.latitude,
+                            userLocation.longitude,
+                            otherUser.latitude,
+                            otherUser.longitude
+                        )
+                    } kms",
+                    actionLabel = "Dismiss",
+                    duration = SnackbarDuration.Short
+                )
+            }
             MarkerInfoWindowContent(
                 state = MarkerState(
                     LatLng(otherUser.latitude, otherUser.longitude)
                 ),
                 title = otherUser.username,
+                snippet = "Usuario observado",
                 icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)
             ) {
                 uri?.let { it1 ->
                     Image(
-                        bitmap = it1.asImageBitmap() ,
+                        bitmap = it1.asImageBitmap(),
                         contentDescription = "",
                         contentScale = ContentScale.Inside,
                         modifier = Modifier.size(44.dp)
                     )
                 }
+
+
             }
         }
 
@@ -321,6 +317,7 @@ fun RequestLocation(
             ) -> {
                 val location by _locator.requestLocationUpdates().observeAsState()
                 location?.let {
+                    //Log.d("Mio", "GPS UPDATE")
                     _viewModel.onLocationUpdate(it)
                 }
             }
@@ -336,10 +333,11 @@ private fun checkLocationSettings(
     onDisabled: (IntentSenderRequest) -> Unit,
     onEnabled: () -> Unit
 ) {
-    val mLocationRequest = LocationRequest.create()
-        .setInterval(1000L)
-        .setFastestInterval(500L)
-        .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+    /*
+    val mLocationRequest = LocationRequest.Builder(100L).setMinUpdateIntervalMillis(50L)
+        .setPriority(Priority.PRIORITY_HIGH_ACCURACY)*/
+    val mLocationRequest = Locator.locationRequest
+
     val builder = LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest)
     val client = LocationServices.getSettingsClient(context)
     val task = client.checkLocationSettings(builder.build())
@@ -363,5 +361,5 @@ private fun checkLocationSettings(
 @Preview(showSystemUi = true)
 @Composable
 private fun Preview() {
-    MainScreen(rememberNavController())
+    MainScreen(rememberNavController(), null)
 }

@@ -9,9 +9,10 @@ import com.ntn.taller3.composables.auth.LoginScreen
 import com.ntn.taller3.composables.auth.SignUpScreen
 import com.ntn.taller3.composables.mainscreen.MainScreen
 import com.ntn.taller3.composables.mainscreen.UsersScreen
+import com.ntn.taller3.data.UserNotification
 
 @Composable
-fun RootNavGraph(navController: NavHostController, start: String){
+fun RootNavGraph(navController: NavHostController, start: String, userNotification: UserNotification?){
     NavHost(navController = navController, startDestination = start){
         composable(Screens.Login.route){
             LoginScreen(navController)
@@ -23,7 +24,7 @@ fun RootNavGraph(navController: NavHostController, start: String){
             UsersScreen()
         }
         composable(Screens.MainScreen.route, deepLinks = listOf(navDeepLink { uriPattern = "main_screen_nofication" })){
-            MainScreen(navController)
+            MainScreen(navController, userNotification = userNotification)
         }
     }
 }

@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.storage.FirebaseStorage
 import com.ntn.taller3.data.UserDetails
+import com.ntn.taller3.data.UserNotification
 import com.parse.*
 import com.parse.livequery.ParseLiveQueryClient
 import com.parse.livequery.SubscriptionHandling
@@ -27,7 +28,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
-import kotlin.math.pow
+import kotlin.math.*
 
 
 sealed class UIState {
@@ -98,7 +99,7 @@ class MainScreenViewModel : ViewModel() {
         }
 
         subscriptionHandling.handleEvents { _, event, obj ->
-            if(obj.getString("username") == ParseUser.getCurrentUser().username){
+            if (obj.getString("username") == ParseUser.getCurrentUser().username) {
                 return@handleEvents
             }
             run {
@@ -142,7 +143,7 @@ class MainScreenViewModel : ViewModel() {
                         }
                         _users.value.removeAt(i)
                         Log.d("Mio", "Para borrar")
-                        if(obj.objectId == _otherUser.value.objectID){
+                        if (obj.objectId == _otherUser.value.objectID) {
                             _isWatching.value = false
                             Log.d("Mio", "Borrado el marcador")
                         }
@@ -196,6 +197,7 @@ class MainScreenViewModel : ViewModel() {
 
     fun setOnline() {
         if (!_isOnline.value) {
+            pushNotification()
             viewModelScope.launch {
                 _isOnline.value = true
                 val obj = ParseObject("Users")
@@ -234,8 +236,9 @@ class MainScreenViewModel : ViewModel() {
     private fun retrieveUserImage() {
         val localFile = File.createTempFile("images", "jpg")
         val storageRef = FirebaseStorage.getInstance().reference
-        val uploadTask = storageRef.child("images/"+_otherUser.value.username+".jpg").getBytes(
-            1024.0.pow(50.0).toLong())
+        val uploadTask = storageRef.child("images/" + _otherUser.value.username + ".jpg").getBytes(
+            1024.0.pow(50.0).toLong()
+        )
         uploadTask.addOnSuccessListener {
             _otherUserUri.value = BitmapFactory.decodeByteArray(it, 0, it.size)
 
@@ -246,11 +249,12 @@ class MainScreenViewModel : ViewModel() {
         }
     }
 
-    private fun retrieveUserImage(user:String): Bitmap? {
+    private fun retrieveUserImage(user: String): Bitmap? {
         val localFile = File.createTempFile("images", "jpg")
         val storageRef = FirebaseStorage.getInstance().reference
-        val uploadTask = storageRef.child("images/"+user+".jpg").getBytes(
-            1024.0.pow(50.0).toLong())
+        val uploadTask = storageRef.child("images/" + user + ".jpg").getBytes(
+            1024.0.pow(50.0).toLong()
+        )
         var bitmap: Bitmap? = null
         uploadTask.addOnSuccessListener {
             bitmap = BitmapFactory.decodeByteArray(it, 0, it.size)
@@ -266,13 +270,17 @@ class MainScreenViewModel : ViewModel() {
     private fun pushAvailableNotification() {
 
         val client = OkHttpClient()
-        val type = "application/json; charset=utf-8".toMediaType();
+        val type = "application/json; charset=utf-8".toMediaType()
 
 
-        val json: String = mapToJson("Nuevo usuario disponible  \uD83D\uDDFA️\uD83C\uDDE8\uD83C\uDDF4",ParseUser.getCurrentUser().username+" ahora esta disponible para seguirlo \uD83E\uDDED \uD83D\uDCCD \uD83D\uDCCD",ParseUser.getCurrentUser().username)
+        val json: String = mapToJson(
+            "Nuevo usuario disponible  \uD83D\uDDFA️\uD83C\uDDE8\uD83C\uDDF4",
+            ParseUser.getCurrentUser().username + " ahora esta disponible para seguirlo \uD83E\uDDED \uD83D\uDCCD \uD83D\uDCCD",
+            ParseUser.getCurrentUser().username
+        )
 
 
-        val body = RequestBody.create(type,json);
+        val body = RequestBody.create(type, json)
         val request = Request.Builder()
             .url("http://3.80.151.200:1337/parse/push")
             .addHeader("X-Parse-Application-Id", "findit")
@@ -286,31 +294,38 @@ class MainScreenViewModel : ViewModel() {
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    Log.i("response",response.toString())
+                    Log.i("response", response.toString())
                 }
             })
-        } catch (e:IOException){
+        } catch (e: IOException) {
 
         }
     }
 
-    private fun mapToJson(title_message:String, alert_message: String,username:String): String {
+    private fun mapToJson(title_message: String, alert_message: String, username: String): String {
         val json = JSONObject()
 
-        var list_channels = JSONArray()
+        val list_channels = JSONArray()
         list_channels.put("AvailableUser")
 
-        json.put("channels",list_channels)
+        json.put("channels", list_channels)
 
         val data = JSONObject()
 
-        data.put("alert",alert_message)
-        data.put("title",title_message)
-        data.put("user",username)
-        json.put("data",data)
+        data.put("alert", alert_message)
+        data.put("title", title_message)
+        data.put("user", username)
 
-        Log.i("json",json.toString())
-"""
+        val obj = JSONObject()
+        obj.put("username", username)
+        obj.put("latitude", _userLocation.value.latitude)
+        obj.put("longitude", _userLocation.value.longitude)
+        //UserNotification(username, _userLocation.value.latitude, _userLocation.value.longitude)
+        data.put("userNotification", obj)
+        json.put("data", data)
+
+        Log.i("json", json.toString())
+        """
         '{
         "channels": [
         "AvailableUser"
@@ -325,5 +340,42 @@ class MainScreenViewModel : ViewModel() {
     }
 
 
+    fun calculateDistance(
+        initialLat: Double, initialLong: Double,
+        finalLat: Double, finalLong: Double
+    ): Double {
+        var initialLat = initialLat
+        var finalLat = finalLat
+        val R = 6371 // km (Earth radius)
+        val dLat = toRadians(finalLat - initialLat)
+        val dLon = toRadians(finalLong - initialLong)
+        initialLat = toRadians(initialLat)
+        finalLat = toRadians(finalLat)
+        val a = sin(dLat / 2) * sin(dLat / 2) +
+                sin(dLon / 2) * sin(dLon / 2) * cos(initialLat) * cos(finalLat)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return R * c
+    }
 
+    private fun toRadians(deg: Double): Double {
+        return deg * (Math.PI / 180)
+    }
+
+    private fun pushNotification() {
+        val params: HashMap<String, String?> = HashMap()
+        params["deviceId"] = "1234567890"
+        params["message"] = "Hola esta es una notificación de pruebaaaaaaa"
+        ParseCloud.callFunctionInBackground("sendPush", params,
+            FunctionCallback<Any?> { result, e -> Log.d("MIO", "done: $e") })
+    }
+
+    fun viewUserNotification(userNotification: UserNotification) {
+        onWatchingOtherUser(UserDetails(
+            userNotification.username,
+            null,
+            userNotification.latitude,
+            userNotification.longitude,
+            ""
+        ))
+    }
 }
